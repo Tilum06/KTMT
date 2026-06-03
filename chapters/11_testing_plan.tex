@@ -1,0 +1,192 @@
+
+\section{Kiểm thử}
+
+\subsection{Chiến lược kiểm thử}
+
+Chương trình được kiểm thử qua các phía:
+\begin{itemize}
+    \item Setup Phase: Kiểm tra validation tàu (phạm vi, hình dạng, độ dài, chồng lấn)
+    \item Battle Phase: Kiểm tra HIT/MISS, kiểm tra điều kiện thắng
+    \item Input: Kiểm tra xử lý input hợp lệ và không hợp lệ
+\end{itemize}
+
+\subsection{Các test case chính}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Loại} & \textbf{Test} & \textbf{Kết quả mong đợi} \\
+\hline
+\multirow{3}{*}{Valid Ship} & `0 0 0 1` (length 2) & Đặt thành công \\
+ & `2 3 4 3` (length 3) & Đặt thành công \\
+ & `3 3 3 6` (length 4) & Đặt thành công \\
+\hline
+\multirow{3}{*}{Invalid Ship} & `-1 0 -1 1` (out range) & Reject \\
+ & `0 0 2 1` (diagonal) & Reject \\
+ & `0 0 0 3` (wrong length) & Reject \\
+\hline
+\multirow{3}{*}{Battle Phase} & Bắn tàu: HIT & `boardP2[i]=0`, `memP1[i]=2` \\
+ & Bắn trống: MISS & `memP1[i]=1` \\
+ & Tất cả tàu bị phá & Player 1 thắng \\
+\hline
+\end{tabular}
+\caption{Test cases chính}
+\end{table}
+\hline
+
+\multicolumn{4}{|c|}{\textbf{Battle Phase - Valid Attacks}} \\
+\hline
+
+TC-17 & Attack empty cell: "1 1" (board has no ship) & Display "MISS!", update memory & Valid miss \\
+\hline
+
+TC-18 & Attack ship cell: "0 0" (board has ship there) & Display "HIT!", update board/memory & Valid hit \\
+\hline
+
+TC-19 & Attack boundary: "6 6" & Depends on what's there & Valid boundary attack \\
+\hline
+
+\multicolumn{4}{|c|}{\textbf{Battle Phase - Invalid Attacks}} \\
+\hline
+
+TC-20 & Attack: "-1 0" (out of range) & Reject, show error & Out of range \\
+\hline
+
+TC-21 & Attack: "7 5" (out of range) & Reject, show error & Out of range \\
+\hline
+
+TC-22 & Attack same cell twice: "2 3", then "2 3" & Second attack rejected & Prevent repeated attacks \\
+\hline
+
+TC-23 & Invalid input: "a b" (non-numeric) & Reject, show error & Invalid format \\
+\hline
+
+TC-24 & Invalid input: "2" (only 1 number) & Reject, show error & Incomplete input \\
+\hline
+
+\multicolumn{4}{|c|}{\textbf{Game Flow}} \\
+\hline
+
+TC-25 & Complete setup for both players without errors & Both players' boards display with ships & Full setup phase passes \\
+\hline
+
+TC-26 & Destroy all opponent's ships & Display "PLAYER X WINS!" & Game ends correctly \\
+\hline
+
+TC-27 & Two Players mode: After Player 1 turn, display pause message & Display "Please swap players" & Turn swap works \\
+\hline
+
+TC-28 & One Player mode: Computer attacks automatically & Computer selects valid cell, displays result & Computer AI works \\
+\hline
+
+TC-29 & One Player mode: Destroy all Computer's ships & Display "PLAYER 1 WINS!" & Player can beat Computer \\
+\hline
+
+TC-30 & One Player mode: All Player 1 ships destroyed & Display "COMPUTER WINS!" & Computer can beat Player \\
+\hline
+
+\multicolumn{4}{|c|}{\textbf{Data Integrity}} \\
+\hline
+
+TC-31 & After each successful placement, board[index]=1 for ship cells & Board updates correctly & Board state management \\
+\hline
+
+TC-32 & After hit, opponent board[index]=0 at hit location & Opponent's ship marked destroyed & Board update on hit \\
+\hline
+
+TC-33 & After miss, memory[index]=1; board unchanged & Memory board updated, ship board unchanged & Board state separation \\
+\hline
+
+TC-34 & board\_has\_ship returns false when all cells=0 & Game declares winner & Ship detection works \\
+\hline
+
+\end{longtable}
+
+\subsection{Chiến lược kiểm thử}
+
+\subsection{Kiểm thử từ dưới lên (Bottom-up Testing)}
+
+Kiểm thử các thủ tục nhỏ trước:
+\begin{enumerate}
+    \item parse\_two\_ints, parse\_four\_ints
+    \item board\_has\_ship
+    \item clear\_board
+\end{enumerate}
+
+Sau đó kiểm thử các thủ tục lớn:
+\begin{enumerate}
+    \item read\_and\_place\_ship
+    \item player\_attack
+    \item game\_loop
+\end{enumerate}
+
+\subsection{Kiểm thử biên (Boundary Testing)}
+
+Kiểm tra các giá trị tại biên:
+\begin{itemize}
+    \item row/col = 0 (góc trên trái)
+    \item row/col = 6 (góc dưới phải)
+    \item Các ô biên khác
+\end{itemize}
+
+\subsection{Kiểm thử tiêu cực (Negative Testing)}
+
+Kiểm tra input sai:
+\begin{itemize}
+    \item Số âm
+    \item Số quá lớn
+    \item Ký tự chữ
+    \item Để trống
+\end{itemize}
+
+\subsection{Tiêu chí vượt qua kiểm thử}
+
+Chương trình được coi là vượt qua kiểm thử khi:
+
+\begin{enumerate}
+    \item Tất cả test case phù hợp (TC-1 đến TC-34) cho kết quả như mong đợi.
+    \item Không có lỗi segmentation fault hoặc infinite loop.
+    \item Giao diện hiển thị rõ ràng, không có ký tự rác.
+    \item Tất cả thông báo lỗi hiển thị đúng.
+\end{enumerate}
+
+\subsection{Công cụ kiểm thử}
+
+Kiểm thử được thực hiện thông qua:
+
+\begin{itemize}
+    \item \textbf{MARS Debugger}: Để theo dõi giá trị thanh ghi và bộ nhớ.
+    \item \textbf{Manual Input}: Nhập liệu thủ công để kiểm tra.
+    \item \textbf{Visual Inspection}: Kiểm tra output trên màn hình.
+\end{itemize}
+
+\subsection{Báo cáo lỗi (Bug Report Format)}
+
+Nếu phát hiện lỗi, cần ghi lại:
+
+\begin{verbatim}
+Bug ID: [number]
+Title: [brief description]
+Steps to Reproduce:
+1. [step 1]
+2. [step 2]
+...
+Expected Behavior: [what should happen]
+Actual Behavior: [what actually happened]
+Severity: Critical / High / Medium / Low
+\end{verbatim}
+
+Ví dụ:
+
+\begin{verbatim}
+Bug ID: 001
+Title: Overlapping ships not detected in vertical placement
+Steps to Reproduce:
+1. Place Ship 1: "0 0 0 1" (horizontal, length 2)
+2. Place Ship 2: "0 0 2 0" (vertical, overlaps at (0,0))
+Expected Behavior: Ship 2 rejected with error message
+Actual Behavior: Ship 2 accepted, overlaps with Ship 1
+Severity: Critical
+\end{verbatim}

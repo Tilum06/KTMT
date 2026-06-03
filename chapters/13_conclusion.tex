@@ -1,0 +1,122 @@
+
+\section{Kết luận}
+
+\subsection{Tóm tắt chương trình}
+
+Chương trình Battleship được cài đặt thành công bằng ngôn ngữ lắp ráp MIPS trong môi trường MARS simulator. Chương trình mô phỏng đầy đủ trò chơi chiến lược cổ điển Battleship trên bàn cờ 7×7 với các tính năng chính sau:
+
+\subsection{Các tính năng được triển khai}
+
+\begin{enumerate}
+    \item \textbf{Giai đoạn Setup (Thiết lập)}: Mỗi người chơi đặt 6 tàu (3 chiếc dài 2, 2 chiếc dài 3, 1 chiếc dài 4) lên bàn cờ 7×7 của mình. Chương trình kiểm tra tính hợp lệ đầy đủ: phạm vi, hình dạng (ngang/dọc), độ dài, không chồng lấn.
+    
+    \item \textbf{Giai đoạn Battle (Chiến đấu)}: Hai người chơi lần lượt tấn công bàn cờ đối phương bằng cách nhập tọa độ. Chương trình xác định trúng (HIT) hay trượt (MISS), cập nhật bàn cờ và bản đồ bắn tương ứng, ngăn chặn tấn công lặp lại.
+    
+    \item \textbf{Kiểm tra kết thúc}: Sau mỗi lượt tấn công, chương trình kiểm tra xem bàn cờ của đối thủ còn tàu hay không. Khi tất cả tàu bị tiêu diệt, trò chơi kết thúc và thông báo người thắng.
+    
+    \item \textbf{Menu và Hướng dẫn}: Chương trình cung cấp menu chính với các tùy chọn Play Game, Instructions, Quit, cùng với hướng dẫn rõ ràng về cách chơi.
+    
+    \item \textbf{Hai chế độ chơi}:
+    \begin{itemize}
+        \item \textbf{One Player}: Người chơi đấu với Computer. Computer tự động đặt tàu và tấn công theo chiến lược tuyến tính.
+        \item \textbf{Two Players}: Hai người chơi nhập liệu và tấn công lần lượt. Chương trình cung cấp điểm tạm dừng để đổi lượt bảo mật.
+    \end{itemize}
+    
+    \item \textbf{Giao diện người dùng}: Hiển thị song song bàn cờ của mình và bản đồ bắn đối phương, giúp người chơi dễ dàng theo dõi tình hình trò chơi.
+\end{enumerate}
+
+\subsection{Kỹ năng MIPS được luyện tập}
+
+Thông qua assignment này, lập trình viên đã luyện tập các kỹ năng MIPS quan trọng:
+
+\begin{enumerate}
+    \item \textbf{Arithmetic Instructions}: Sử dụng add, sub, mul, div để tính toán index mảng, độ dài tàu, và các giá trị số học.
+    
+    \item \textbf{Memory/Data Transfer}: Sử dụng lw, sw, la, li để truy cập bộ nhớ, đặc biệt là các mảng 2D ánh xạ thành mảng 1D.
+    
+    \item \textbf{Branch và Jump}: Sử dụng beq, bne, blt, bgt, j để điều khiển luồng chương trình, kiểm tra điều kiện, và tạo vòng lặp.
+    
+    \item \textbf{Procedure Call}: Sử dụng jal và jr \$ra để gọi và trả về từ các thủ tục, hiện thực hóa lập trình có cấu trúc.
+    
+    \item \textbf{Stack Usage}: Sử dụng stack để bảo toàn \$ra và \$s-registers khi các thủ tục gọi thủ tục khác.
+    
+    \item \textbf{String/Integer Syscalls}: Sử dụng syscall để in chuỗi, in số, đọc chuỗi, đọc số, và đọc ký tự.
+    
+    \item \textbf{Array Indexing}: Tính toán offset mảng từ index, xử lý các trường hợp phức tạp như mảng 2D.
+    
+    \item \textbf{Conditional Logic}: Triển khai logic phức tạp để kiểm tra hợp lệ input, phát hiện trúng/hụt, xác định người thắng.
+\end{enumerate}
+
+\subsection{Thách thức và giải pháp}
+
+Trong quá trình cài đặt, có một số thách thức:
+
+\subsection{Thách thức: Quản lý bộ nhớ phức tạp}
+
+Với 4 bàn cờ (boardP1, boardP2, memP1, memP2), mỗi cái 49 từ, cần xác định đúng offset để tránh ghi đè dữ liệu.
+
+\textbf{Giải pháp}: Sử dụng công thức rõ ràng: byte\_offset = (row × 7 + col) × 4. Tất cả truy cập bộ nhớ tuân theo công thức này.
+
+\subsection{Thách thức: Bảo toàn thanh ghi khi thủ tục gọi thủ tục}
+
+Khi một thủ tục gọi thủ tục khác, \$ra sẽ bị ghi đè. Cần bảo toàn giá trị cũ của \$ra.
+
+\textbf{Giải pháp}: Sử dụng stack. Tại đầu thủ tục, lưu \$ra vào stack trước khi gọi thủ tục khác. Tại cuối, khôi phục \$ra từ stack trước khi trả về.
+
+\subsection{Thách thức: Xác thực input phức tạp}
+
+Input cần được tách thành các số, kiểm tra phạm vi, kiểm tra hình dạng, độ dài, chồng lấn.
+
+\textbf{Giải pháp}: Tách việc xác thực thành các bước riêng biệt, mỗi bước kiểm tra một điều kiện. Nếu bất kỳ kiểm tra nào thất bại, yêu cầu nhập lại.
+
+\subsection{Thách thức: Tách biệt boardP1/boardP2 và memP1/memP2}
+
+Dễ nhầm lẫn giữa board (trạng thái tàu) và memory (lịch sử tấn công). Viết vào board sai có thể phá hủy dữ liệu.
+
+\textbf{Giải pháp}: Sử dụng những tên biến rõ ràng, viết comment chi tiết về mục đích của mỗi biến. Kiểm thử kỹ lưỡng.
+
+\subsection{Đóng góp cho việc học}
+
+Assignment này đóng góp đáng kể cho việc học lập trình MIPS:
+
+\begin{enumerate}
+    \item \textbf{Thực hành toàn diện}: Không chỉ luyện tập một hoặc hai khái niệm, mà luyện tập hầu hết các khía cạnh của MIPS.
+    
+    \item \textbf{Giải quyết vấn đề}: Cần suy luận để thiết kế data structures, thuật toán, và kiến trúc chương trình.
+    
+    \item \textbf{Debuggging}: Phát triển kỹ năng debug bằng cách sử dụng MARS debugger để theo dõi giá trị thanh ghi và bộ nhớ.
+    
+    \item \textbf{Viết báo cáo kỹ thuật}: Thực hành viết báo cáo rõ ràng, không chèn code, nhưng giải thích thuật toán.
+\end{enumerate}
+
+\subsection{Kết luận cuối cùng}
+
+Chương trình Battleship MIPS đã được cài đặt thành công, thực hiện đầy đủ các yêu cầu của assignment. Chương trình:
+
+\begin{itemize}
+    \item [OK] Mô phỏng trò chơi Battleship đầy đủ trên bàn cờ 7$\times$7.
+    \item [OK] Hổ trợ hai chế độ chơi (One Player vs Computer, Two Players).
+    \item [OK] Kiểm tra tính hợp lệ đầy đủ: phạm vi, hình dạng, độ dài, chồng lận, tấn công lặp lại.
+    \item [OK] Phát hiện và thông báo trúng/hụt đúng đắn.
+    \item [OK] Xác định người thăng chính xác.
+    \item [OK] Cung cấp giao diện người dùng rõ ràng, dễ sử dụng.
+    \item [OK] Sử dụng hiệu quả các khái niệm MIPS: arithmetic, memory, branch, procedure, stack, syscall.
+\end{itemize}
+
+Assignment này không chỉ đạt yêu cầu đề bài mà còn là một ứng dụng đủ đầy, hoạt động tốt và có giá trị luyện tập cao. Nó là một ví dụ tốt về cách cài đặt một chương trình có độ phức tạp trung bình bằng ngôn ngữ lắp ráp, đòi hỏi kỹ năng lập trình, thiết kế data structures, và khả năng debuggging.
+
+\subsection{Hướng phát triển trong tương lai}
+
+Như đã đề cập trong chương Giới hạn và Cải tiến, những hướng phát triển tiếp theo có thể bao gồm:
+
+\begin{itemize}
+    \item Cải tiến AI cho Computer (chiến lược thông minh, ngẫu nhiên hóa, tối ưu bắn).
+    \item Ghi lại lịch sử trò chơi vào file (move logging, replay).
+    \item Hỗ trợ bàn cờ và đội tàu cấu hình được.
+    \item Giao diện cấp cao hơn (tô màu, animation, clear screen).
+    \item Thống kê và leaderboard.
+\end{itemize}
+
+Tuy nhiên, các tính năng này vượt ra ngoài phạm vi của assignment MIPS lần này.
+
+Để kết thúc, assignment Battleship MIPS là một dự án lập trình hữu ích, có độ khó vừa phải, giúp lập trình viên làm quen với các khái niệm lắp ráp, cấu trúc dữ liệu, và lập trình có cấu trúc trong MIPS.

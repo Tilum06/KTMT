@@ -1,0 +1,254 @@
+
+\section{Thuật toán giai đoạn chiến đấu}
+
+Giai đoạn Battle là vòng lặp chính nơi hai người chơi (hoặc Player vs Computer) lần lượt tấn công nhau.
+
+\subsection{Luồng Battle Loop}
+
+\begin{enumerate}
+    \item \textbf{Loop}: Lặp cho đến khi có người thắng
+    \begin{enumerate}
+        \item \textbf{Player 1 turn}:
+        \begin{itemize}
+            \item Hiển thị board của Player 1 và memory board (history của Player 1 bắn)
+            \item Yêu cầu nhập tọa độ tấn công: 2 số (row col)
+            \item Kiểm tra tọa độ trong [0, 6], kiểm tra chưa bắn ô này
+            \item Nếu bắn đã: Thông báo "Already shot here"
+            \item Nếu hợp lệ:
+            \begin{itemize}
+                \item Nếu `boardP2[index] == 1`: HIT, cập nhật `boardP2[index]=0`, `memP1[index]=2`
+                \item Nếu `boardP2[index] == 0`: MISS, cập nhật `memP1[index]=1`
+            \end{itemize}
+            \item Kiểm tra Player 2 còn tàu? Nếu không: Player 1 thắng, kết thúc.
+        \end{itemize}
+        
+        \item \textbf{Player 2 turn}: Tương tự (hoặc Computer tự động lựa chọn ô)
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Kiểm tra trúng/trượt}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Condition} & \textbf{Result} & \textbf{Update} \\
+\hline
+`opponent_board[i]==1` & HIT & `opponent_board[i]=0`, `memory[i]=2` \\
+\hline
+`opponent_board[i]==0` & MISS & `memory[i]=1` \\
+\hline
+Ô bắn rồi & Repeated shot & Thông báo lỗi \\
+\hline
+\end{tabular}
+\caption{Logic xác định trúng/trượt}
+\end{table}
+
+\subsection{Kiểm tra điều kiện thắng}
+
+Sau mỗi tấn công, kiểm tra xem board của đối phương còn ô nào có giá trị 1 (tàu). Nếu không có, người tấn công thắng.
+
+Giai đoạn thiết lập là bước đầu tiên sau khi chọn chế độ chơi. Mục tiêu của giai đoạn này là cho phép mỗi người chơi đặt đúng 6 tàu (theo đặc tả: 3 tàu dài 2, 2 tàu dài 3, 1 tàu dài 4) lên bàn cờ của mình.
+
+\subsection{Luồng chính của setup\_player}
+
+Thủ tục setup\_player thực hiện theo luồng sau:
+
+\begin{verbatim}
+PROCEDURE setup_player(player_id)
+  |
+  +---> Clear board của player
+         (Đặt tất cả 49 ô về 0)
+         |
+  +---> FOR i = 1 to 3 (Đặt 3 tàu dài 2)
+  |      |
+  |      +---> Display "Place ship of length 2"
+  |             |
+  |             +---> CALL read_and_place_ship(2)
+  |                    |
+  |                    +---> IF valid: continue to next ship
+  |                    |     ELSE: repeat this ship
+  |
+  +---> FOR i = 1 to 2 (Đặt 2 tàu dài 3)
+  |      |
+  |      +---> Display "Place ship of length 3"
+  |             |
+  |             +---> CALL read_and_place_ship(3)
+  |                    |
+  |                    +---> IF valid: continue to next ship
+  |                    |     ELSE: repeat this ship
+  |
+  +---> FOR i = 1 to 1 (Đặt 1 tàu dài 4)
+         |
+         +---> Display "Place ship of length 4"
+                |
+                +---> CALL read_and_place_ship(4)
+                       |
+                       +---> IF valid: setup complete
+                       |     ELSE: repeat this ship
+
+END PROCEDURE
+\end{verbatim}
+
+\subsection{Chi tiết thủ tục read\_and\_place\_ship}
+
+Thủ tục read\_and\_place\_ship là thủ tục chính xử lý việc đặt một tàu. Nó thực hiện các bước sau:
+
+\subsection{Bước 1: Đọc input}
+
+Đọc một dòng từ người dùng vào inputBuffer. Dòng này dự kiến chứa 4 số nguyên cách nhau bởi khoảng trắng: row\_bow, column\_bow, row\_stern, column\_stern.
+
+\begin{verbatim}
+READ input_line into inputBuffer
+\end{verbatim}
+
+\subsection{Bước 2: Tách 4 số nguyên}
+
+Gọi thủ tục parse\_four\_ints để tách 4 số từ chuỗi input. Nếu không thể tách được đúng 4 số, báo lỗi và trả về.
+
+\begin{verbatim}
+CALL parse_four_ints(inputBuffer, addr_r1, addr_c1, addr_r2, addr_c2)
+IF parse failed:
+  PRINT "Invalid input format. Please try again."
+  RETURN with failure
+\end{verbatim}
+
+Sau bước này, ta có:
+\begin{itemize}
+    \item $r_1$ = row\_bow, $c_1$ = column\_bow
+    \item $r_2$ = row\_stern, $c_2$ = column\_stern
+\end{itemize}
+
+\subsection{Bước 3: Kiểm tra phạm vi}
+
+Kiểm tra tất cả 4 tọa độ có nằm trong [0, 6] hay không.
+
+\begin{verbatim}
+IF (r1 < 0 OR r1 > 6 OR c1 < 0 OR c1 > 6 OR
+    r2 < 0 OR r2 > 6 OR c2 < 0 OR c2 > 6):
+  PRINT "Coordinates out of range [0, 6]!"
+  RETURN with failure
+\end{verbatim}
+
+\subsection{Bước 4: Kiểm tra hình dạng}
+
+Kiểm tra tàu có nằm ngang hoặc dọc.
+
+\begin{verbatim}
+is_horizontal = (r1 == r2) AND (c1 != c2)
+is_vertical = (r1 != r2) AND (c1 == c2)
+
+IF NOT (is_horizontal OR is_vertical):
+  PRINT "Ship must be horizontal or vertical!"
+  RETURN with failure
+\end{verbatim}
+
+\subsection{Bước 5: Tính độ dài}
+
+Tính độ dài của tàu dựa vào tọa độ.
+
+\begin{verbatim}
+IF is_horizontal:
+  length = ABS(c2 - c1) + 1
+ELSE IF is_vertical:
+  length = ABS(r2 - r1) + 1
+\end{verbatim}
+
+\subsection{Bước 6: Kiểm tra độ dài}
+
+So sánh độ dài tính được với độ dài yêu cầu.
+
+\begin{verbatim}
+required_length = [parameter passed to function]
+
+IF length != required_length:
+  PRINT "Ship length does not match! Expected: " + required_length
+  RETURN with failure
+\end{verbatim}
+
+\subsection{Bước 7: Kiểm tra chồng lấn}
+
+Quét tất cả ô mà tàu sẽ chiếm, kiểm tra không có ô nào đã chứa tàu (giá trị = 1).
+
+\begin{verbatim}
+FOR each cell (r, c) that ship occupies:
+  index = r * 7 + c
+  byte_offset = index * 4
+  value = board[byte_offset]
+  
+  IF value != 0:
+    PRINT "Ship overlaps with existing ship!"
+    RETURN with failure
+
+END FOR
+\end{verbatim}
+
+\subsection{Bước 8: Đặt tàu lên bàn cờ}
+
+Nếu tất cả kiểm tra đều thành công, ghi giá trị 1 vào tất cả ô mà tàu chiếm giữ.
+
+\begin{verbatim}
+FOR each cell (r, c) that ship occupies:
+  index = r * 7 + c
+  byte_offset = index * 4
+  board[byte_offset] = 1
+
+END FOR
+
+PRINT "Ship placed successfully!"
+RETURN with success
+\end{verbatim}
+
+\subsection{Thủ tục hỗ trợ: parse\_four\_ints}
+
+Thủ tục này tách 4 số nguyên từ một chuỗi input. Nó quét chuỗi từ trái sang phải, bỏ qua khoảng trắng, và thu thập các chữ số để xây dựng số.
+
+\begin{verbatim}
+PROCEDURE parse_four_ints(input_string, addr_val1, addr_val2, 
+                          addr_val3, addr_val4)
+  count = 0
+  current_number = 0
+  
+  FOR each character in input_string:
+    IF character is a digit (0-9):
+      current_number = current_number * 10 + (digit value)
+    ELSE IF character is whitespace OR end of string:
+      IF current_number has been accumulated:
+        Store current_number in appropriate address (addr_val1, etc.)
+        count += 1
+        current_number = 0
+        
+        IF count == 4:
+          RETURN success
+  
+  IF count != 4:
+    RETURN failure
+
+END PROCEDURE
+\end{verbatim}
+
+\subsection{Xử lý Computer trong chế độ One Player}
+
+Trong chế độ One Player, Computer không cần đặt tàu tương tác. Thay vào đó, chương trình sao chép một bàn cờ mẫu được định nghĩa sẵn (autoBoardTemplate) vào boardP2 của Computer.
+
+\begin{verbatim}
+PROCEDURE load_auto_board()
+  FOR i = 0 to 48:
+    boardP2[i] = autoBoardTemplate[i]
+  
+  PRINT "Computer board loaded."
+
+END PROCEDURE
+\end{verbatim}
+
+Mẫu boardTemplate được xác định sẵn sao cho các tàu được đặt hợp lệ và không chồng lấn.
+
+\subsection{Kiểm tra hợp lệ toàn bộ}
+
+Sau khi setup hoàn thành cho cả hai người chơi, chương trình có thể thêm một hàm kiểm tra toàn bộ để đảm bảo:
+\begin{enumerate}
+    \item Mỗi board có chính xác 19 ô chứa tàu (1 + 1 + 1 + 1 + 1 + 2 + 2 + 2 + 3 + 3 + 4 = 19).
+    \item Không có ô nào vượt ra ngoài biên.
+\end{enumerate}
+
+Tuy nhiên, nếu các kiểm tra được thực hiện đúng từng bước trong read\_and\_place\_ship, kiểm tra toàn bộ này là không cần thiết.

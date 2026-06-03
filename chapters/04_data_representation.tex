@@ -1,0 +1,190 @@
+\section{Thuật toán đặt tàu}
+
+Giai đoạn Setup yêu cầu người chơi nhập tọa độ 6 tàu. Mỗi tàu được kiểm tra hợp lệ trước khi chấp nhận.
+
+\subsection{Luồng đặt tàu}
+
+\begin{enumerate}
+    \item Yêu cầu người chơi nhập 4 số: \texttt{row\_bow col\_bow row\_stern col\_stern}
+    
+    \item Parse input thành 4 số nguyên (hỗ trợ khoảng trắng, dừng ở ký tự không hợp lệ)
+    
+    \item Kiểm tra hợp lệ:
+    \begin{itemize}
+        \item Tất cả tọa độ trong [0, 6]?
+        \item Tàu nằm ngang hoặc dọc? (cùng hàng hoặc cùng cột)
+        \item Độ dài = |tọa1 - tọa2| + 1 khớp với yêu cầu?
+        \item Không chồng lấn (kiểm tra từng ô trên board)?
+    \end{itemize}
+    
+    \item Nếu hợp lệ: Ghi giá trị 1 vào các ô tàu chiếm, thông báo thành công, chuyển tàu tiếp theo.
+    
+    \item Nếu không: Thông báo lỗi, yêu cầu nhập lại tàu này.
+\end{enumerate}
+
+\subsection{Các điều kiện hợp lệ}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Điều kiện} & \textbf{Kiểm tra} \\
+\hline
+Phạm vi tọa độ & row, col $\in$ [0, 6] \\
+\hline
+Hình dạng & Ngang (cùng row) hoặc Dọc (cùng col) \\
+\hline
+Độ dài tàu & Khớp yêu cầu (2, 3, hoặc 4) \\
+\hline
+Không chồng lấn & Tất cả ô chứa giá trị 0 \\
+\hline
+\end{tabular}
+\caption{Điều kiện kiểm tra khi đặt tàu}
+\end{table}
+
+\subsection{Computer Setup (One Player mode)}
+
+Trong chế độ One Player, Computer không yêu cầu input. Thay vào đó, board của Computer được sao chép từ một mẫu được định nghĩa sẵn (`autoBoardTemplate`) trong data segment.
+
+
+\subsubsection{Công thức chuyển đổi index}
+
+Khi người chơi cung cấp tọa độ (row, column) với row, column $\in$ [0, 6], ta tính index trong mảy 1D như sau:
+
+\begin{equation}
+\text{index} = \text{row} \times 7 + \text{column}
+\end{equation}
+
+Ví dụ:
+\begin{itemize}
+    \item (0, 0) $\rightarrow$ index = 0 $\times$ 7 + 0 = 0 (ô đầu tiên, góc trái trên)
+    \item (0, 6) $\rightarrow$ index = 0 $\times$ 7 + 6 = 6 (ô cuối cùng hàng 0, góc phải trên)
+    \item (6, 6) $\rightarrow$ index = 6 $\times$ 7 + 6 = 48 (ô cuối cùng, góc phải dưới)
+    \item (3, 3) $\rightarrow$ index = 3 $\times$ 7 + 3 = 24 (ô giữa bàn cờ)
+\end{itemize}
+
+\subsubsection{Công thức tính byte offset}
+
+Vì mỗi phần tử trong mảng là một word (4 byte), byte offset của phần tử tại index được tính:
+
+\begin{equation}
+\text{byte\_offset} = \text{index} \times 4
+\end{equation}
+
+Hoặc kết hợp cả hai:
+
+\begin{equation}
+\text{byte\_offset} = (\text{row} \times 7 + \text{column}) \times 4
+\end{equation}
+
+Trong MIPS, khi muốn đọc/ghi ô tại (row, column), ta:
+\begin{enumerate}
+    \item Tính index = row $\times$ 7 + column
+    \item Tính byte\_offset = index $\times$ 4
+    \item Dùng $t0 = $base\_address + byte\_offset để truy cập phần tử
+    \item Dùng lw hoặc sw để đọc/ghi
+\end{enumerate}
+
+\subsection{Cấu trúc dữ liệu chính}
+
+\subsubsection{Bàn cờ chính (Main Board) - boardP1, boardP2}
+
+Lưu trạng thái tàu của mỗi người chơi. Mỗi phần tử là một 32-bit word:
+
+\begin{itemize}
+    \item \textbf{Giá trị 1}: Ô chứa phần thân tàu còn nguyên vẹn (chưa bị bắn trúng).
+    \item \textbf{Giá trị 0}: Ô trống hoặc đã bị bắn trúng.
+\end{itemize}
+
+Kích thước: 49 $\times$ 4 byte = 196 byte mỗi bàn.
+
+\subsubsection{Bản đồ bắn (Memory Board) - memP1, memP2}
+
+Lưu lịch sử tấn công của mỗi người chơi. Mỗi phần tử là một 32-bit word:
+
+\begin{itemize}
+    \item \textbf{Giá trị 0}: Ô chưa được tấn công (unknown).
+    \item \textbf{Giá trị 1}: Ô đã được tấn công nhưng trượt (MISS).
+    \item \textbf{Giá trị 2}: Ô đã được tấn công và trúng (HIT).
+\end{itemize}
+
+Kích thước: 49 $\times$ 4 byte = 196 byte mỗi bản đồ.
+
+\subsubsection{Bộ đệm input (inputBuffer)}
+
+Một mảng ký tự (bytes) để đọc chuỗi input từ người dùng. Kích thước đủ để chứa một dòng input (khoảng 100-256 byte).
+
+\subsubsection{Mẫu bàn cờ tự động (autoBoardTemplate)}
+
+Một bàn cờ được xác định sẵn cho Computer trong chế độ One Player. Chứa 49 phần tử với các ô tàu đã được đặt sẵn.
+
+\subsubsection{Biến chế độ chơi (gameMode)}
+
+Một word 32-bit lưu chế độ chơi:
+\begin{itemize}
+    \item Giá trị 1: One Player vs Computer.
+    \item Giá trị 2: Two Players.
+\end{itemize}
+
+\subsection{Biểu diễn trực quan trên giao diện}
+
+Khi in bàn cờ, các ký hiệu được sử dụng để biểu diễn trạng thái ô:
+
+\subsubsection{Bàn cờ của chính mình (Own Board)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|l|}
+\hline
+\textbf{Giá trị} & \textbf{Ký hiệu} & \textbf{Ý nghĩa} \\
+\hline
+1 & [1] & Phần tàu còn sống \\
+\hline
+0 (trống) & . & Ô trống, chưa bị bắn \\
+\hline
+0 (bị phá) & X & Ô bị bắn trúng, tàu bị phá \\
+\hline
+\end{tabular}
+\caption{Ký hiệu trên bàn cờ của mình}
+\end{table}
+
+\textit{Chú ý}: Trên bàn cờ chính, giá trị 0 có thể biểu diễn cả ô trống và ô bị phá hủy. Để phân biệt, chương trình có thể sử dụng thêm logic hoặc sử dụng ký hiệu khác tùy thuộc vào cách in bàn cờ.
+
+\subsubsection{Bản đồ bắn đối phương (Enemy Map)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|l|}
+\hline
+\textbf{Giá trị} & \textbf{Ký hiệu} & \textbf{Ý nghĩa} \\
+\hline
+0 & . & Chưa biết (chưa bắn) \\
+\hline
+1 & O & Đã bắn nhưng trượt (MISS) \\
+\hline
+2 & X & Đã bắn và trúng (HIT) \\
+\hline
+\end{tabular}
+\caption{Ký hiệu trên bản đồ bắn đối phương}
+\end{table}
+
+\subsection{Ví dụ biểu diễn dữ liệu}
+
+Giả sử người chơi 1 đặt 2 tàu:
+\begin{itemize}
+    \item Tàu 1 (dài 2): từ (0, 0) đến (0, 1) - nằm ngang
+    \item Tàu 2 (dài 2): từ (2, 3) đến (3, 3) - nằm dọc
+\end{itemize}
+
+Bàn cờ boardP1 sẽ có giá trị 1 tại các vị trí:
+\begin{itemize}
+    \item Index 0 (row=0, col=0) = 1
+    \item Index 1 (row=0, col=1) = 1
+    \item Index 17 (row=2, col=3) = 1
+    \item Index 24 (row=3, col=3) = 1
+\end{itemize}
+
+Các vị trí khác = 0.
+
+Sau khi bắn vào (0, 0) và trúng, boardP1 tại index 0 được đặt về 0, còn memP2 (bản đồ bắn của Player 2) tại index 0 được đặt về 2 (HIT).

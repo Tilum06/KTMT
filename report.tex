@@ -1,0 +1,89 @@
+% Speed-up compilation
+\documentclass[twoside,final]{hcmut-report}
+\usepackage{codespace}
+
+% Draft watermark
+% https://github.com/callegar/LaTeX-draftwatermark
+
+% Encodings
+\usepackage{gensymb,textcomp}
+
+% Better tables
+% Wide tables go to https://tex.stackexchange.com/q/332902
+\usepackage{array,longtable,multicol,multirow,siunitx,tabularx}
+
+% Better enum
+\usepackage{enumitem}
+
+% Graphics
+\usepackage{graphicx}
+\usepackage{caption,float}
+
+% Add options for figures, like max width, framing, etc.
+\usepackage[export]{adjustbox}
+
+% References
+% Use \Cref{} instead of \ref{}
+\usepackage[nameinlink]{cleveref}
+
+% FOR DEMONSTRATION PURPOSES, REMOVE IN PRODUCTION
+\usepackage{mwe}
+
+
+\usepackage{tikz}
+
+
+% Sub-preambles
+% https://github.com/MartinScharrer/standalone
+
+% Configurations
+\coursename{Computer Architecture Lab}
+\reporttype{Assignment}
+\title{BATTLESHIP}
+\advisor{& Phạm Quốc Cường &}
+\stuname{%
+  & Nguyễn Phúc Vĩnh & 2414001 \\
+}
+
+% ===================================================
+% NỘI DUNG CHÍNH
+% ===================================================
+\begin{document}
+
+\coverpage
+
+\AtBeginDocument{\counterwithin{lstlisting}{section}}
+
+% Tạo mục lục và các danh sách
+
+\pagestyle{plain}          
+\pagenumbering{roman}
+
+\tableofcontents
+\listoffigures
+\listoftables
+\lstlistoflistings
+
+\clearpage
+
+\pagenumbering{arabic}      % 1, 2, 3, ...
+\setcounter{page}{1}
+\pagestyle{fancy}
+
+% Nội dung các chương
+
+\input{chapters/01_introduction.tex}
+\input{chapters/02_requirement_analysis.tex}
+\input{chapters/03_program_design_overview.tex}
+\input{chapters/04_data_representation.tex}
+\input{chapters/05_setup_phase_algorithm.tex}
+\input{chapters/06_battle_phase_algorithm.tex}
+\input{chapters/07_one_player_mode.tex}
+\input{chapters/08_input_parsing_validation.tex}
+\input{chapters/09_procedure_organization.tex}
+\input{chapters/10_user_interface_design.tex}
+\input{chapters/11_testing_plan.tex}
+\input{chapters/12_limitations_improvements.tex}
+\input{chapters/13_conclusion.tex}
+
+\end{document}

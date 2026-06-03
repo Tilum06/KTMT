@@ -1,0 +1,304 @@
+
+\section{Thiết kế giao diện người dùng}
+
+\subsection{Tổng quan về giao diện}
+
+Giao diện người dùng (User Interface) là phần mà người chơi tương tác trực tiếp với chương trình. Giao diện tốt phải:
+\begin{itemize}
+    \item Rõ ràng và dễ hiểu.
+    \item Cung cấp feedback rõ ràng cho mỗi hành động.
+    \item Hướng dẫn người chơi cách nhập liệu đúng.
+    \item Tránh nhầm lẫn giữa các chế độ chơi.
+\end{itemize}
+
+\subsection{Menu chính}
+
+Menu chính là màn hình đầu tiên người dùng thấy. Nó cho phép chọn giữa ba tùy chọn:
+
+\subsection{Hiển thị menu}
+
+\begin{verbatim}
+===== BATTLESHIP GAME =====
+1. Play Game
+2. Instructions
+3. Quit
+
+Choose an option (1-3): _
+\end{verbatim}
+
+\subsection{Xử lý lựa chọn}
+
+\begin{verbatim}
+IF choice == 1:
+  CALL choose_game_mode()
+  (Vào lựa chọn chế độ chơi)
+
+IF choice == 2:
+  CALL show_help()
+  (Hiển thị hướng dẫn)
+
+IF choice == 3:
+  CALL exit_program()
+  (Thoát)
+\end{verbatim}
+
+\subsection{Hướng dẫn (Help)}
+
+Hướng dẫn hiển thị luật chơi và cách nhập liệu:
+
+\begin{verbatim}
+===== BATTLESHIP GAME - INSTRUCTIONS =====
+
+Objective: Destroy all opponent's ships.
+
+Rules:
+1. Board size: 7x7 (coordinates 0-6)
+2. Each player has:
+   - 3 ships of length 2
+   - 2 ships of length 3
+   - 1 ship of length 4
+
+Setup Phase:
+- Place your ships on your board
+- Each ship is defined by bow and stern coordinates:
+  Example: "0 0 0 1" means row_bow=0, col_bow=0, row_stern=0, col_stern=1
+- Ship must be horizontal (same row) or vertical (same column)
+
+Battle Phase:
+- Take turns attacking opponent's board
+- Enter target coordinates: "row col"
+- HIT: You hit a ship
+- MISS: You hit empty water
+- First to destroy all opponent's ships wins!
+
+Press any key to continue...
+\end{verbatim}
+
+\subsection{Lựa chọn chế độ chơi}
+
+Sau khi chọn Play Game, người chơi lựa chọn chế độ:
+
+\subsection{Hiển thị lựa chọn chế độ}
+
+\begin{verbatim}
+===== CHOOSE GAME MODE =====
+1. One Player (vs Computer)
+2. Two Players
+
+Choose a mode (1-2): _
+\end{verbatim}
+
+\subsection{Xử lý chế độ}
+
+\begin{verbatim}
+IF mode == 1:
+  CALL setup_player(1)
+  CALL load_auto_board()  (Tàu Computer tự động)
+  gameMode = 1
+
+IF mode == 2:
+  CALL setup_player(1)
+  CALL setup_player(2)
+  gameMode = 2
+
+CALL game_loop()
+\end{verbatim}
+
+\subsection{Giai đoạn Setup}
+
+Trong giai đoạn setup, người chơi đặt tàu:
+
+\subsection{Hướng dẫn đặt tàu}
+
+\begin{verbatim}
+===== PLAYER 1 - SETUP PHASE =====
+Place your 6 ships on the 7x7 board.
+
+Enter coordinates as: row_bow col_bow row_stern col_stern
+
+Ship 1 (length 2): _
+\end{verbatim}
+
+\subsection{Phản hồi sau khi đặt tàu}
+
+\begin{verbatim}
+Ship placed successfully!
+
+Ship 2 (length 2): _
+\end{verbatim}
+
+Hoặc nếu sai:
+
+\begin{verbatim}
+Invalid ship placement. Please try again.
+Reason: Ship overlaps with existing ship.
+
+Ship 1 (length 2): _
+\end{verbatim}
+
+\subsection{Hiển thị bàn cờ}
+
+Bàn cờ được in dưới dạng lưới 7×7 với tiêu đề hàng và cột:
+
+\subsection{Bàn cờ của chính mình}
+
+\begin{verbatim}
+YOUR BOARD - Player 1
+    0 1 2 3 4 5 6
+  0 [1][1][.][.][.][.][.]
+  1 [.][.][.][.][.][.][.]
+  2 [1][.][.][1][1][1][.]
+  3 [1][.][.][.][.][.][.]
+  4 [1][.][1][.][.][.][.]
+  5 [.][.][1][.][.][.][.]
+  6 [.][.][1][1][1][1][.]
+\end{verbatim}
+
+Legend:
+\begin{itemize}
+    \item [1]: Ship cell (still intact)
+    \item [.]: Empty cell
+    \item [X]: Destroyed ship cell
+    \item [O]: Missed shot (on own board)
+\end{itemize}
+
+\subsection{Bản đồ bắn đối phương}
+
+\begin{verbatim}
+ENEMY MAP - Player 2
+    0 1 2 3 4 5 6
+  0 [.][X][.][.][.][.][.]
+  1 [O][.][.][.][.][.][.]
+  2 [.][.][.][.][.][.][.]
+  3 [.][.][.][.][.][.][.]
+  4 [.][.][X][.][.][.][.]
+  5 [.][.][.][.][.][.][.]
+  6 [O][.][.][.][.][.][.]
+\end{verbatim}
+
+Legend:
+\begin{itemize}
+    \item [.]: Unknown cell (not attacked)
+    \item [O]: Miss
+    \item [X]: Hit
+\end{itemize}
+
+\subsection{Dual-Board Display}
+
+Trong giai đoạn chiến đấu, hai bàn cờ được in song song để người chơi thấy cả hai cùng lúc:
+
+\begin{verbatim}
+YOUR BOARD - Player 1          ENEMY MAP - Player 2
+    0 1 2 3 4 5 6                  0 1 2 3 4 5 6
+  0 [1][1][.][.][.][.][.]       0 [.][X][.][.][.][.][.]
+  1 [.][.][.][.][.][.][.]       1 [O][.][.][.][.][.][.]
+  2 [1][.][.][1][1][1][.]       2 [.][.][.][.][.][.][.]
+  3 [1][.][.][.][.][.][.]       3 [.][.][.][.][.][.][.]
+  4 [1][.][1][.][.][.][.]       4 [.][.][X][.][.][.][.]
+  5 [.][.][1][.][.][.][.]       5 [.][.][.][.][.][.][.]
+  6 [.][.][1][1][1][1][.]       6 [O][.][.][.][.][.][.]
+\end{verbatim}
+
+\subsection{Giai đoạn chiến đấu}
+
+Trong giai đoạn chiến đấu:
+
+\subsection{Yêu cầu nhập tọa độ}
+
+\begin{verbatim}
+===== PLAYER 1 TURN =====
+Enter target row and column (e.g., "2 3"): _
+\end{verbatim}
+
+\subsection{Thông báo kết quả}
+
+\begin{verbatim}
+HIT!
+(Cập nhật bàn cờ và bản đồ bắn)
+\end{verbatim}
+
+Hoặc:
+
+\begin{verbatim}
+MISS!
+(Cập nhật bản đồ bắn)
+\end{verbatim}
+
+Hoặc nếu input sai:
+
+\begin{verbatim}
+You already attacked this cell! Try another.
+
+Enter target row and column (e.g., "2 3"): _
+\end{verbatim}
+
+\subsection{Tạm dừng để đổi lượt (Pause for Swap)}
+
+Trong chế độ Two Players, sau khi mỗi lượt, chương trình tạm dừng để người chơi khác có cơ hội giảm bớt việc nhìn thấy bàn cờ của đối thủ:
+
+\begin{verbatim}
+===== PLEASE SWAP PLAYERS =====
+Player 2, it's your turn now.
+(Press any key to continue...)
+\end{verbatim}
+
+Thủ tục pause\_for\_swap:
+
+\begin{verbatim}
+PROCEDURE pause_for_swap()
+  PRINT message
+  READ one character (to wait for user confirmation)
+  
+  (Optionally, clear screen to hide previous board)
+
+END PROCEDURE
+\end{verbatim}
+
+\subsection{Thông báo kết thúc game}
+
+Khi một người chơi chiến thắng:
+
+\begin{verbatim}
+===== GAME OVER =====
+PLAYER 1 WINS!
+
+Congratulations! You destroyed all opponent's ships.
+
+Return to menu? (Y/N): _
+\end{verbatim}
+
+Hoặc:
+
+\begin{verbatim}
+===== GAME OVER =====
+COMPUTER WINS!
+
+Game Over. Better luck next time!
+
+Return to menu? (Y/N): _
+\end{verbatim}
+
+\subsection{Thông báo lỗi}
+
+Chương trình cung cấp thông báo lỗi rõ ràng:
+
+\begin{enumerate}
+    \item \textbf{Invalid input format}: Khi không thể tách số từ chuỗi input.
+    \item \textbf{Coordinates out of range}: Khi tọa độ ngoài [0, 6].
+    \item \textbf{Ship overlaps with existing ship}: Khi đặt tàu chồng lấn.
+    \item \textbf{Ship must be horizontal or vertical}: Khi tàu chéo.
+    \item \textbf{Ship length does not match}: Khi độ dài sai.
+    \item \textbf{You already attacked this cell}: Khi bắn lại cùng ô.
+\end{enumerate}
+
+\subsection{Nguyên tắc thiết kế}
+
+Giao diện được thiết kế theo các nguyên tắc:
+
+\begin{itemize}
+    \item \textbf{Clarity}: Rõ ràng về những gì người chơi cần làm tiếp theo.
+    \item \textbf{Consistency}: Cùng format, cùng ký hiệu ở mọi nơi.
+    \item \textbf{Feedback}: Phản hồi rõ ràng cho mỗi hành động.
+    \item \textbf{Error Handling}: Thông báo lỗi cụ thể, không chung chung.
+    \item \textbf{Accessibility}: Dễ sử dụng, không cần huấn luyện phức tạp.
+\end{itemize}

@@ -1,0 +1,59 @@
+\section{Phân tích yêu cầu}
+
+Chương trình phải đáp ứng các yêu cầu cơ bản sau:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|p{10cm}|}
+\hline
+\textbf{Tiêu chí} & \textbf{Chi tiết} \\
+\hline
+Kích thước bàn cờ & 7×7 ô (49 ô tổng cộng) \\
+\hline
+Hạm đội & 3 tàu dài 2, 2 tàu dài 3, 1 tàu dài 4 \\
+\hline
+Đặt tàu & Ngang/dọc, không chồng lấn, hoặc không hợp lệ thì nhập lại \\
+\hline
+Input đặt tàu & 4 số: row\_bow col\_bow row\_stern col\_stern \\
+\hline
+Input tấn công & 2 số: row col \\
+\hline
+Kết quả & HIT (trúng) hoặc MISS (trượt) \\
+\hline
+Không bắn lặp & Mỗi ô chỉ được tấn công một lần \\
+\hline
+Điều kiện thắng & Tất cả tàu đối phương bị tiêu diệt \\
+\hline
+Chế độ chơi & One Player (vs Computer) hoặc Two Players \\
+\hline
+\end{tabular}
+\caption{Yêu cầu chính của chương trình}
+\end{table}
+
+\subsection{Kiểm tra hợp lệ khi đặt tàu}
+
+Một tàu được chấp nhận nếu:
+\begin{enumerate}
+    \item Tất cả tọa độ nằm trong [0, 6].
+    \item Tàu nằm ngang hoặc dọc (không chéo).
+    \item Độ dài tính được khớp với độ dài yêu cầu.
+    \item Không ô nào đã có tàu khác.
+\end{enumerate}
+
+Nếu không đáp ứng, người chơi phải nhập lại.
+
+\subsection{Biểu diễn dữ liệu}
+
+\textbf{Board chính} (trạng thái tàu):
+\begin{itemize}
+    \item Giá trị 1: Tàu còn sống
+    \item Giá trị 0: Ô trống hoặc tàu bị phá
+\end{itemize}
+
+\textbf{Memory board} (lịch sử tấn công):
+\begin{itemize}
+    \item Giá trị 0: Chưa bắn
+    \item Giá trị 1: MISS (trượt)
+    \item Giá trị 2: HIT (trúng)
+\end{itemize}

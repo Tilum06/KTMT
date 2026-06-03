@@ -1,0 +1,178 @@
+
+\section{Giới hạn và cải tiến có thể}
+
+\subsection{Giới hạn hiện tại}
+
+Chương trình Battleship trong phiên bản hiện tại có các giới hạn sau:
+
+\subsection{Chiến lược tấn công Computer}
+
+\begin{itemize}
+    \item \textbf{Không thông minh}: Computer không học hỏi từ các lần trúng trước. Nếu bắn trúng một ô, Computer sẽ không tập trung bắn vào các ô lân cận để tìm cả tàu.
+    
+    \item \textbf{Không ngẫu nhiên}: Chiến lược là xác định (deterministic), quét từ trái sang phải, từ trên xuống dưới. Người chơi có thể dự đoán được ô tiếp theo.
+    
+    \item \textbf{Tối ưu thấp}: Có thể tốn nhiều lượt bắn hơn cần thiết (lý thuyết tối ưu là bắn các ô cách nhau 2 ô, nhưng Computer bắn từng ô một).
+\end{itemize}
+
+\subsection{Ghi lại lịch sử di chuyển (Move History)}
+
+\begin{itemize}
+    \item \textbf{Không lưu file}: Chương trình không ghi lại các di chuyển (moves) của cả hai người chơi vào file. Điều này có nghĩa là không thể xem lại lịch sử trò chơi sau khi kết thúc.
+    
+    \item \textbf{Mất dữ liệu}: Khi thoát chương trình, tất cả dữ liệu về các di chuyển sẽ mất.
+    
+    \item \textbf{Không hỗ trợ bonus}: Nếu assignment yêu cầu bonus cho tính năng ghi file, chương trình không đủ điều kiện.
+\end{itemize}
+
+\subsection{Kích thước bàn cờ cố định}
+
+\begin{itemize}
+    \item \textbf{Chỉ hỗ trợ 7×7}: Bàn cờ là cố định 7×7. Không thể thay đổi thành 8×8, 10×10, hoặc kích thước khác.
+    
+    \item \textbf{Đội tàu cố định}: Số lượng và kích thước tàu là cố định (3 chiếc dài 2, 2 chiếc dài 3, 1 chiếc dài 4). Không thể tùy chỉnh.
+    
+    \item \textbf{Giảm tính linh hoạt}: Người dùng không thể cấu hình trò chơi theo sở thích.
+\end{itemize}
+
+\subsection{Xử lý input hạn chế}
+
+\begin{itemize}
+    \item \textbf{Không xử lý số âm}: Input chứa số âm (ví dụ: ``-1 2'') sẽ không được tách đúng. Parser chỉ xây dựng số dương.
+    
+    \item \textbf{Không hỗ trợ định dạng khác}: Nếu người dùng nhập định dạng khác (ví dụ: ``row=2, col=3''), chương trình sẽ từ chối.
+    
+    \item \textbf{Tràn buffer}: Nếu input quá dài, có thể tràn inputBuffer và gây lỗi.
+\end{itemize}
+
+\subsection{Giao diện text thuần}
+
+\begin{itemize}
+    \item \textbf{Không có clear screen}: Khi đổi lượt, các lệnh trước vẫn hiển thị trên màn hình. Người chơi khác có thể nhìn thấy.
+    
+    \item \textbf{Không tô màu}: Giao diện là text thuần, không có màu sắc để làm đẹp hoặc tăng sự tương tác.
+    
+    \item \textbf{Thiếu hoạ tiết}: Không có animation hay hiệu ứng trực quan nào.
+\end{itemize}
+
+\subsection{Cải tiến có thể}
+
+Các cải tiến sau đây có thể được triển khai:
+
+\subsection{Computer AI nâng cao}
+
+\begin{itemize}
+    \item \textbf{Theo dõi các lần trúng}: Nếu bắn trúng ô (r, c), Computer sẽ ưu tiên bắn các ô lân cận: (r-1, c), (r+1, c), (r, c-1), (r, c+1).
+    
+    \item \textbf{Xác định hướng tàu}: Khi bắn trúng ô thứ hai, Computer sẽ xác định tàu nằm ngang hay dọc, sau đó tiếp tục bắn theo hướng đó.
+    
+    \item \textbf{Ngẫu nhiên hóa}: Sử dụng random number generator để chọn ô ngẫu nhiên (thay vì quét từ trái sang phải).
+    
+    \item \textbf{Chiến lược parity}: Bắn vào các ô sao cho tất cả tàu đều bị phát hiện với số lượt bắn tối thiểu.
+\end{itemize}
+
+\subsection{Ghi lại lịch sử trò chơi}
+
+\begin{itemize}
+    \item \textbf{Tạo file log}: Ghi tất cả các di chuyển vào một file text (ví dụ: \texttt{game\_log.txt}).
+    
+    \item \textbf{Format log}: Mỗi dòng ghi: ``Turn X: Player Y attacks (r, c) -> HIT/MISS''
+    
+    \item \textbf{Thống kê}: Tính số lượt bắn của mỗi người chơi, tỷ lệ trúng, v.v.
+    
+    \item \textbf{Replay}: Có thể tái hiện lại trò chơi từ file log.
+\end{itemize}
+
+\subsection{Bàn cờ cấu hình được}
+
+\begin{itemize}
+    \item \textbf{Kích thước cấu hình}: Cho phép người dùng nhập kích thước bàn (ví dụ: 8×8, 10×10).
+    
+    \item \textbf{Đội tàu cấu hình}: Cho phép định nghĩa số lượng tàu và kích thước của từng tàu.
+    
+    \item \textbf{Lưu cài đặt}: Lưu cài đặt yêu thích vào file để sử dụng lần sau.
+\end{itemize}
+
+\subsection{Xử lý input tăng cường}
+
+\begin{itemize}
+    \item \textbf{Hỗ trợ số âm}: Parser phải theo dõi dấu âm.
+    
+    \item \textbf{Kiểm tra buffer overflow}: Xác thực độ dài input không vượt quá buffer size.
+    
+    \item \textbf{Hỗ trợ định dạng linh hoạt}: Chấp nhận nhiều định dạng (ví dụ: ``0,0,0,1'' hoặc ``0 0 0 1'').
+\end{itemize}
+
+\subsection{Giao diện cấp cao hơn}
+
+\begin{itemize}
+    \item \textbf{Clear screen}: Sử dụng lệnh hệ thống để xóa màn hình khi đổi lượt.
+    
+    \item \textbf{Tô màu}: Sử dụng ANSI color codes để in các ký hiệu với màu sắc (ví dụ: tàu màu xanh, trúng màu đỏ).
+    
+    \item \textbf{Animation}: Hiển thị animation khi bắn (ví dụ: hiệu ứng phát nổ khi trúng).
+    
+    \item \textbf{Sound}: Thêm âm thanh khi trúng/trượt (nếu MARS hỗ trợ).
+\end{itemize}
+
+\subsection{Tính năng mạng}
+
+\begin{itemize}
+    \item \textbf{Chơi trực tuyến}: Cho phép hai người chơi ở máy tính khác nhau chơi với nhau qua mạng.
+    
+    \item \textbf{Server}: Cần một server để quản lý trò chơi và truyền thông tin.
+\end{itemize}
+
+Tuy nhiên, tính năng này vượt ra ngoài phạm vi assignment MIPS.
+
+\subsection{Thống kê và leaderboard}
+
+\begin{itemize}
+    \item \textbf{Theo dõi chiến tích}: Ghi lại số trò chơi thắng/thua của mỗi người chơi.
+    
+    \item \textbf{Leaderboard}: Hiển thị bảng xếp hạng các người chơi xuất sắc nhất.
+    
+    \item \textbf{Thống kê chi tiết}: Tỷ lệ thắng, số lượt bắn trung bình, v.v.
+\end{itemize}
+
+\subsection{Mức ưu tiên cải tiến}
+
+Nếu cải tiến được triển khai, mức ưu tiên nên là:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|l|}
+\hline
+\textbf{Cải tiến} & \textbf{Độ khó} & \textbf{Ưu tiên} \\
+\hline
+Computer AI nâng cao & Trung bình & Cao \\
+\hline
+Ghi lại lịch sử trò chơi & Trung bình & Cao (nếu có bonus) \\
+\hline
+Clear screen/tô màu & Thấp & Trung \\
+\hline
+Bàn cờ cấu hình được & Cao & Trung \\
+\hline
+Xử lý input tăng cường & Trung bình & Thấp \\
+\hline
+Tính năng mạng & Rất cao & Rất thấp \\
+\hline
+Thống kê/leaderboard & Cao & Thấp \\
+\hline
+\end{tabular}
+\caption{Mức ưu tiên cải tiến}
+\end{table}
+
+\subsection{Lý do không triển khai tính năng nâng cao}
+
+Các tính năng nâng cao không được triển khai trong phiên bản hiện tại vì:
+
+\begin{enumerate}
+    \item \textbf{Phạm vi assignment}: Assignment tập trung vào luyện tập MIPS, không phải phát triển game hoàn chỉnh.
+    
+    \item \textbf{Độ phức tạp}: Các tính năng như AI nâng cao hoặc tính năng mạng yêu cầu rất nhiều code.
+    
+    \item \textbf{Giới hạn MARS}: MARS là simulator MIPS đơn giản, không hỗ trợ một số tính năng (ví dụ: socket, file I/O nâng cao).
+    
+    \item \textbf{Thời gian}: Đủ thời gian để implement core functionality, không còn cho extras.
+\end{enumerate}

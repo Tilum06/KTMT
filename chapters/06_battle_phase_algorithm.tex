@@ -1,0 +1,296 @@
+
+\section{Hướng dẫn sử dụng}
+
+\subsection{Cách chạy chương trình}
+
+\begin{enumerate}
+    \item Mở MARS 4.5 simulator
+    \item File → Open → Chọn file \texttt{battleship.asm}
+    \item Run → Assemble
+    \item Run → Go (hoặc nhấn F5)
+\end{enumerate}
+
+\subsection{Menu chính}
+
+Khi chạy, chương trình hiển thị:
+
+\begin{verbatim}
+===== BATTLESHIP GAME =====
+1. Play Game
+2. Instructions
+3. Quit
+Choose: [nhập 1, 2, hoặc 3]
+\end{verbatim}
+
+\subsection{Chọn chế độ chơi}
+
+Nếu chọn Play Game (1), chương trình yêu cầu:
+
+\begin{verbatim}
+Choose mode:
+1. One Player (vs Computer)
+2. Two Players
+Choose: [nhập 1 hoặc 2]
+\end{verbatim}
+
+\subsection{Setup Phase}
+
+Mỗi người chơi đặt 6 tàu. Nhập 4 số (hàng và cột của hai đầu tàu):
+
+\begin{verbatim}
+Player X: Place ship of length 2:
+Enter: [nhập 4 số, ví dụ: 0 0 0 1]
+\end{verbatim}
+
+Nếu hợp lệ: thông báo "Ship placed". Nếu không: "Invalid ship. Try again."
+
+\subsection{Battle Phase}
+
+Mỗi lượt, nhập 2 số (hàng và cột):
+
+\begin{verbatim}
+Player X's turn:
+[Hiển thị board]
+Enter target: [nhập 2 số, ví dụ: 3 5]
+\end{verbatim}
+
+Kết quả: `HIT` hoặc `MISS`.
+
+Hai Players mode: Sau mỗi lượt, chương trình tạm dừng để đổi lượt:
+
+\begin{verbatim}
+Press Enter to continue...
+\end{verbatim}
+
+\subsection{Ký hiệu trên board}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|l|}
+\hline
+\textbf{Ký hiệu} & \textbf{Ý nghĩa} \\
+\hline
+`1` & Tàu còn sống (chỉ nhìn thấy trên board của mình) \\
+\hline
+`.` & Trống/chưa bắn \\
+\hline
+`O` & Trượt (MISS) \\
+\hline
+`X` & Trúng (HIT) \\
+\hline
+\end{tabular}
+\caption{Ký hiệu trên board}
+\end{table}
+
+\subsection{One Player Mode (vs Computer)}
+
+Computer sử dụng chiến lược đơn giản: quét từ index 0 đến 48, chọn ô đầu tiên chưa bắn. Không có AI phức tạp.
+
+
+\begin{verbatim}
+PROCEDURE game_loop()
+  LOOP WHILE TRUE:
+    
+    +---> PLAYER 1 TURN
+    |      |
+    |      +---> CALL player_attack(Player1, Player2, memP1, boardP2)
+    |             |
+    |             +---> Display Player 1's board and memP1 (enemy map)
+    |             +---> Read target row, column
+    |             +---> Check if hit or miss
+    |             +---> Update boardP2 and memP1
+    |             +---> Return hit/miss result
+    |
+    |      +---> CALL board_has_ship(boardP2)
+    |             |
+    |             +---> IF no ship remains:
+    |                    PRINT "Player 1 WINS!"
+    |                    RETURN from game_loop
+    |
+    |      +---> IF Two Players mode:
+    |             CALL pause_for_swap()
+    |             (Display message and wait for confirmation)
+    |
+    +---> PLAYER 2 / COMPUTER TURN
+    |      |
+    |      +---> IF One Player mode:
+    |             CALL computer_attack(Computer, Player1, memP2, boardP1)
+    |      |     ELSE IF Two Players mode:
+    |             CALL player_attack(Player2, Player1, memP2, boardP1)
+    |             |
+    |             +---> Display Player 2's board and memP2 (enemy map)
+    |             +---> Read target row, column
+    |             +---> Check if hit or miss
+    |             +---> Update boardP1 and memP2
+    |             +---> Return hit/miss result
+    |
+    |      +---> CALL board_has_ship(boardP1)
+    |             |
+    |             +---> IF no ship remains:
+    |                    PRINT "Player 2 / Computer WINS!"
+    |                    RETURN from game_loop
+    |
+    |      +---> IF Two Players mode:
+    |             CALL pause_for_swap()
+
+END LOOP
+\end{verbatim}
+
+\subsection{Chi tiết thủ tục player\_attack}
+
+Thủ tục player\_attack xử lý một lượt tấn công của người chơi. Nó thực hiện các bước sau:
+
+\subsection{Bước 1: Hiển thị bàn cờ}
+
+In bàn cờ của người chơi hiện tại và bản đồ bắn đối phương (enemy map).
+
+\begin{verbatim}
+CALL print_dual_boards(own_board, enemy_memory_board)
+\end{verbatim}
+
+\subsection{Bước 2: Yêu cầu nhập tọa độ tấn công}
+
+Yêu cầu người chơi nhập tọa độ hàng và cột mà người chơi muốn tấn công.
+
+\begin{verbatim}
+PRINT "Enter target row and column (e.g., '3 5'): "
+READ input_line
+CALL parse_two_ints(input_line, addr_row, addr_col)
+
+IF parse failed:
+  PRINT "Invalid input format. Please try again."
+  RETURN
+\end{verbatim}
+
+\subsection{Bước 3: Kiểm tra phạm vi}
+
+Kiểm tra tọa độ nhập vào có nằm trong [0, 6] hay không.
+
+\begin{verbatim}
+IF (row < 0 OR row > 6 OR col < 0 OR col > 6):
+  PRINT "Coordinates out of range [0, 6]!"
+  RETURN
+\end{verbatim}
+
+\subsection{Bước 4: Chuyển đổi tọa độ thành index}
+
+Tính index từ tọa độ (row, column).
+
+\begin{verbatim}
+index = row * 7 + col
+byte_offset = index * 4
+\end{verbatim}
+
+\subsection{Bước 5: Kiểm tra tấn công lặp lại}
+
+Kiểm tra xem ô này đã được tấn công trước đó hay chưa bằng cách kiểm tra giá trị tương ứng trên bản đồ bắn (enemy\_memory\_board).
+
+\begin{verbatim}
+memory_value = enemy_memory_board[byte_offset]
+
+IF memory_value != 0:  (memory_value là 1 hoặc 2)
+  PRINT "You already attacked this cell! Try another."
+  RETURN
+\end{verbatim}
+
+\subsection{Bước 6: Kiểm tra trúng hay hụt}
+
+Kiểm tra giá trị tại ô đó trên bàn cờ của đối thủ.
+
+\begin{verbatim}
+opponent_value = opponent_board[byte_offset]
+
+IF opponent_value == 1:
+  // HIT
+  PRINT "HIT!"
+  
+  // Update opponent's board
+  opponent_board[byte_offset] = 0
+  
+  // Update attacker's memory
+  enemy_memory_board[byte_offset] = 2
+  
+ELSE:  // opponent_value == 0
+  // MISS
+  PRINT "MISS!"
+  
+  // Update attacker's memory
+  enemy_memory_board[byte_offset] = 1
+\end{verbatim}
+
+\subsection{Bước 7: Kiểm tra kết thúc trò chơi}
+
+Sau mỗi lượt tấn công, kiểm tra xem bàn cờ của đối thủ còn tàu hay không.
+
+\begin{verbatim}
+CALL board_has_ship(opponent_board)
+
+IF no ship remains:
+  PRINT "You won! Game over."
+  RETURN true (game over signal)
+ELSE:
+  RETURN false (game continues)
+\end{verbatim}
+
+\subsection{Thủ tục hỗ trợ: board\_has\_ship}
+
+Thủ tục board\_has\_ship kiểm tra xem bàn cờ còn bất kỳ ô nào chứa tàu (giá trị = 1) hay không.
+
+\begin{verbatim}
+PROCEDURE board_has_ship(board)
+  FOR i = 0 to 48:
+    IF board[i] == 1:
+      RETURN true  (still has ship)
+  
+  RETURN false  (no ship remains)
+
+END PROCEDURE
+\end{verbatim}
+
+Nếu không còn ô nào có giá trị 1, thì tất cả tàu của người chơi đó đã bị phá hủy, và trò chơi kết thúc.
+
+\subsection{Quá trình cập nhật bàn cờ}
+
+Để hiểu rõ hơn cơ chế cập nhật dữ liệu, ta xem xét một ví dụ:
+
+\subsection{Tình huống 1: Bắn trúng}
+
+Giả sử Player 1 bắn vào (2, 3):
+\begin{enumerate}
+    \item index = 2 × 7 + 3 = 17
+    \item byte\_offset = 17 × 4 = 68
+    \item Kiểm tra memP1[17] (bản đồ bắn của Player 1):
+    \begin{itemize}
+        \item Nếu memP1[17] != 0: ô đã bắn rồi, từ chối.
+        \item Nếu memP1[17] == 0: chưa bắn, tiếp tục.
+    \end{itemize}
+    \item Kiểm tra boardP2[17] (bàn cờ thực của Player 2):
+    \begin{itemize}
+        \item Nếu boardP2[17] == 1: trúng! Cập nhật boardP2[17] = 0, memP1[17] = 2.
+        \item Nếu boardP2[17] == 0: trượt. Cập nhật memP1[17] = 1.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Tình huống 2: Bắn hụt}
+
+Nếu ô (2, 3) trên boardP2 là 0 (trống):
+\begin{enumerate}
+    \item Chỉ cập nhật memP1[17] = 1 (MISS).
+    \item boardP2[17] vẫn là 0 (không thay đổi).
+\end{enumerate}
+
+\subsection{Tình huống 3: Bắn lặp lại}
+
+Nếu memP1[17] đã là 1 hoặc 2 (đã bắn trước đó):
+\begin{enumerate}
+    \item Chương trình từ chối tấn công, yêu cầu nhập tọa độ mới.
+    \item Không cập nhật bất kỳ dữ liệu nào.
+\end{enumerate}
+
+\subsection{Lưu ý quan trọng}
+
+\begin{itemize}
+    \item \textbf{Tách biệt boardP1/boardP2 và memP1/memP2}: Điều này rất quan trọng. Board chính chỉ được cập nhật khi đối thủ bắn trúng ô của mình. Memory board chỉ được cập nhật với kết quả tấn công của mình đối thủ.
+    \item \textbf{Thứ tự kiểm tra}: Luôn kiểm tra memory board trước để đảm bảo không bắn lại cùng ô. Điều này giúp ngăn ngừa lỗi logic.
+    \item \textbf{Hiển thị kết quả rõ ràng}: Sau mỗi lượt tấn công, in ra HIT! hoặc MISS! rõ ràng để người chơi biết kết quả.
+\end{itemize}

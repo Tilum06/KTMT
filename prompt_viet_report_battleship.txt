@@ -1,0 +1,190 @@
+PROMPT CHI TIẾT ĐỂ VIẾT REPORT ASSIGNMENT BATTLESHIP - MIPS
+
+Bạn là người viết report học thuật cho môn Computer Architecture Lab (CO2008). Hãy viết một báo cáo hoàn chỉnh, rõ ràng, mạch lạc bằng tiếng Việt cho bài Assignment “BATTLESHIP” được cài đặt bằng MIPS Assembly trên MARS. Báo cáo phải tập trung vào ý tưởng, thuật toán, tổ chức dữ liệu và cách chương trình hoạt động. Tuyệt đối không chèn nguyên văn mã nguồn vào report; chỉ được mô tả bằng lời, bảng, sơ đồ luồng, pseudocode ngắn nếu cần.
+
+THÔNG TIN ĐỀ BÀI
+- Môn học: Computer Architecture Lab (CO2008), Ho Chi Minh City University of Technology.
+- Bài tập: Replicate the Battleship game in MIPS assembly language.
+- Môi trường chạy: MARS MIPS simulator.
+- Kích thước bàn cờ: 7x7.
+- Mỗi người chơi có đúng đội tàu gồm:
+  + 3 ships of length 2.
+  + 2 ships of length 3.
+  + 1 ship of length 4.
+- Mỗi tàu được nhập bằng 4 tọa độ: row_bow, column_bow, row_stern, column_stern.
+- Tàu chỉ hợp lệ nếu nằm ngang hoặc dọc, nằm trong giới hạn hàng/cột 0..6, đúng độ dài yêu cầu và không đè lên tàu đã đặt.
+- Giá trị ô trên board chính: 1 nghĩa là ô có tàu còn sống, 0 nghĩa là ô trống hoặc đã bị bắn trúng.
+- Sau giai đoạn setup, hai người chơi lần lượt nhập tọa độ tấn công đối phương.
+- Nếu bắn trúng ô có tàu, chương trình thông báo “HIT!”, đổi ô đó trên board đối phương thành 0.
+- Nếu bắn vào ô trống, chương trình thông báo “MISS!”.
+- Game kết thúc khi board của một người chơi không còn ô nào có giá trị 1.
+- Report nên trình bày thuật toán và ý tưởng cài đặt, không trình bày code nguyên văn.
+
+THÔNG TIN VỀ CHƯƠNG TRÌNH ĐÃ CÀI ĐẶT
+Chương trình trong file battleship1.2.asm có các đặc điểm sau:
+1. Dữ liệu chính
+- boardP1: board thật của Player 1, gồm 49 integer, tương ứng 7x7 ô.
+- boardP2: board thật của Player 2 hoặc Computer, gồm 49 integer.
+- memP1: bản ghi các ô mà Player 1 đã bắn vào board đối phương.
+- memP2: bản ghi các ô mà Player 2 hoặc Computer đã bắn vào board Player 1.
+- Quy ước trên board thật: 0 = empty/destroyed, 1 = intact ship cell.
+- Quy ước trên memory board: 0 = unknown, 1 = miss, 2 = hit.
+- inputBuffer được dùng để đọc một dòng input từ người chơi.
+- gameMode lưu chế độ chơi: 1 = One Player vs Computer, 2 = Two Players.
+- autoBoardTemplate là đội tàu tự động cho Computer.
+
+2. Giao diện và chế độ chơi
+- Chương trình có menu chính gồm Play Game, Instructions, Quit.
+- Có màn hình hướng dẫn luật chơi và format input.
+- Có lựa chọn chế độ chơi:
+  + One Player: Player 1 đấu với Computer. Computer được đặt tàu tự động và tấn công tự động.
+  + Two Players: hai người chơi lần lượt đặt tàu và tấn công.
+- Chương trình có thông báo rõ ràng cho từng pha: setup phase, battle phase, player turn, invalid input, repeated attack, HIT, MISS, winner.
+- Khi chơi 2 người, chương trình có điểm dừng yêu cầu đổi lượt để hạn chế người chơi nhìn thấy board của nhau.
+- Giao diện hiển thị song song “Your board” và “Enemy map”.
+
+3. Các thủ tục/chức năng chính cần mô tả trong report
+- main: điều phối menu, chọn mode, khởi tạo board, setup, battle loop và kết thúc game.
+- show_menu: hiển thị menu chính và nhận lựa chọn.
+- show_help: hiển thị hướng dẫn cách chơi.
+- choose_game_mode: cho phép chọn One Player hoặc Two Players.
+- clear_board: đặt toàn bộ 49 ô của một board về 0.
+- setup_player: yêu cầu người chơi đặt đủ 3 tàu dài 2, 2 tàu dài 3 và 1 tàu dài 4.
+- read_and_place_ship: đọc 4 tọa độ, kiểm tra hợp lệ, kiểm tra chồng lấn và đặt tàu lên board.
+- parse_four_ints: tách 4 số nguyên từ chuỗi input khi đặt tàu.
+- parse_two_ints: tách 2 số nguyên từ chuỗi input khi tấn công.
+- print_board: in một board đơn.
+- print_dual_boards: in song song board của người chơi và bản đồ bắn đối phương.
+- board_has_ship: kiểm tra board còn ô nào có tàu hay không để xác định thắng/thua.
+- load_auto_board: copy đội tàu mẫu cho Computer.
+- computer_attack: Computer chọn ô chưa bắn đầu tiên theo thứ tự tuyến tính và tấn công.
+- pause_for_swap: tạo điểm dừng để đổi lượt giữa hai người chơi.
+
+CẤU TRÚC REPORT CẦN VIẾT
+Hãy viết report theo cấu trúc sau:
+
+1. Title Page
+- Assignment title: BATTLESHIP - MIPS Assembly Implementation.
+- Course: Computer Architecture Lab (CO2008).
+
+2. Introduction
+- Giới thiệu ngắn về Battleship.
+- Nêu mục tiêu của assignment: mô phỏng game Battleship trên board 7x7 bằng MIPS Assembly trong MARS.
+- Nêu các kỹ năng áp dụng: arithmetic instruction, memory/data transfer, branch/jump, procedure call, stack usage, string/integer syscall.
+
+3. Requirement Analysis
+- Tóm tắt yêu cầu đề bài: board 7x7, đội tàu, input tọa độ bow/stern, setup phase, battle phase, điều kiện thắng.
+- Nêu các ràng buộc hợp lệ khi đặt tàu: trong biên, ngang/dọc, đúng độ dài, không overlap.
+- Nêu yêu cầu report không chứa code và chỉ giải thích thuật toán/ý tưởng.
+
+4. Program Design Overview
+- Mô tả chương trình chia thành 3 phần lớn:
+  + User interface and game mode selection.
+  + Setup phase.
+  + Battle phase and win checking.
+- Giải thích flow tổng quát:
+  Start -> Menu -> Choose mode -> Clear boards -> Setup Player 1 -> Setup Player 2 or Computer -> Battle loop -> Check winner -> Return to menu or exit.
+- Có thể thêm flowchart dạng text hoặc mô tả tuần tự.
+
+5. Data Representation
+- Giải thích cách ánh xạ board 7x7 vào mảng 1 chiều 49 integer.
+- Công thức index: index = row * 7 + column, byte offset = index * 4.
+- Giải thích boardP1, boardP2, memP1, memP2.
+- Giải thích ý nghĩa ký hiệu khi in board:
+  + Own board: 1 = ship cell, . = untouched empty cell, O = missed shot on own board, X = hit ship cell/destroyed location.
+  + Enemy map: . = unknown, O = miss, X = hit.
+
+6. Setup Phase Algorithm
+- Mô tả setup_player gọi đặt lần lượt 3 tàu dài 2, 2 tàu dài 3, 1 tàu dài 4.
+- Mô tả read_and_place_ship theo các bước:
+  1) Read one line from inputBuffer.
+  2) Parse four integers.
+  3) Check all coordinates are in range 0..6.
+  4) Check ship is horizontal or vertical.
+  5) Compute length using abs difference + 1.
+  6) Compare computed length with required length.
+  7) Scan all target cells to ensure there is no overlap.
+  8) If valid, write value 1 into each occupied cell; otherwise reject and ask again.
+- Thêm pseudocode ngắn, không dùng code MIPS thật.
+
+7. Battle Phase Algorithm
+- Mô tả game_loop gồm lượt Player 1 và Player 2/Computer.
+- Với mỗi lượt tấn công:
+  1) Print current player board and enemy memory board.
+  2) Read target row and column.
+  3) Validate range 0..6.
+  4) Convert coordinate to index.
+  5) Check memory board to reject repeated shots.
+  6) If opponent board at target = 1, mark hit: set opponent cell to 0, set memory cell to 2, print HIT.
+  7) If opponent board at target = 0, mark miss: set memory cell to 1, print MISS.
+  8) Call board_has_ship on opponent board.
+  9) If no ship remains, announce winner; otherwise switch turn.
+- Giải thích điều kiện kết thúc: một board không còn giá trị 1.
+
+8. One Player Mode and Computer Behavior
+- Mô tả Computer có board tự động từ autoBoardTemplate.
+- Mô tả computer_attack chọn ô chưa bắn đầu tiên trong memP2 theo thứ tự index 0 đến 48.
+- Nêu đây là chiến lược đơn giản, dễ kiểm thử, không phải AI nâng cao.
+
+9. Input Parsing and Validation
+- Giải thích parse_two_ints và parse_four_ints đọc chuỗi rồi tách chữ số thành số nguyên.
+- Giải thích chương trình chỉ chấp nhận input số không âm phù hợp với tọa độ 0..6.
+- Nêu các input sai sẽ bị từ chối và yêu cầu nhập lại.
+
+10. Procedure Organization and MIPS Concepts Used
+- Trình bày chương trình được chia thành nhiều procedure để dễ đọc và tái sử dụng.
+- Nêu cách dùng jal/jr $ra để gọi và trả về thủ tục.
+- Nêu các procedure phức tạp lưu $ra và các thanh ghi $s lên stack để bảo toàn giá trị.
+- Nêu các syscall đã dùng: print string, print integer, read integer, read string, read character, exit.
+- Nêu việc dùng branch/jump để điều khiển vòng lặp, kiểm tra điều kiện, xử lý lỗi input.
+
+11. User Interface Design
+- Mô tả menu, hướng dẫn, thông báo lỗi, thông báo HIT/MISS, thông báo người thắng.
+- Mô tả dual-board display giúp người chơi vừa thấy board của mình vừa theo dõi enemy map.
+- Nêu repeated attack bị từ chối để tránh bắn lại cùng một ô.
+- Nêu pause_for_swap giúp chơi 2 người thuận tiện hơn.
+
+12. Testing Plan and Sample Test Cases
+Hãy tạo một bảng test case gồm các cột: Test case, Input/Action, Expected result, Purpose.
+Nên có ít nhất các test sau:
+- Đặt tàu hợp lệ nằm ngang.
+- Đặt tàu hợp lệ nằm dọc.
+- Đặt tàu ngoài biên.
+- Đặt tàu sai độ dài.
+- Đặt tàu chéo.
+- Đặt tàu overlap.
+- Bắn trúng.
+- Bắn hụt.
+- Bắn lại ô đã bắn.
+- Game kết thúc khi tất cả ô tàu của một người chơi bị phá hủy.
+- Chọn One Player mode và Computer tự đặt tàu.
+- Chọn menu Instructions và Quit.
+
+13. Limitations and Possible Improvements
+- Nêu giới hạn hiện tại:
+  + Computer attack strategy còn đơn giản.
+  + Chưa ghi log moves ra file riêng, nên không claim bonus nếu chương trình chưa có phần này.
+  + Board chỉ cố định 7x7.
+  + Input parser không xử lý số âm hoặc format phức tạp.
+- Đề xuất cải tiến:
+  + Randomized computer attack.
+  + Smarter AI based on previous hits.
+  + Move history logging to text file.
+  + Better screen clearing/privacy between turns.
+  + Configurable board size and fleet size.
+
+14. Conclusion
+- Tóm tắt chương trình đã mô phỏng đầy đủ Battleship 7x7 trên MARS MIPS.
+- Nhấn mạnh chương trình có setup validation, battle loop, hit/miss handling, win checking, menu/help và hai chế độ chơi.
+- Kết luận assignment giúp luyện tập memory addressing, branch/jump, procedure, stack và syscall trong MIPS.
+
+YÊU CẦU VỀ VĂN PHONG
+- Viết bằng tiếng Việt học thuật nhưng dễ hiểu.
+- Không viết quá chung chung; phải gắn với implementation cụ thể ở trên.
+- Không chèn code MIPS nguyên văn.
+- Có thể dùng bảng và pseudocode mức cao.
+- Độ dài đề xuất: 8-12 trang nếu đưa vào Word/PDF với hình minh họa, bảng test case và flowchart; nếu chỉ text thì khoảng 1800-3000 từ.
+- Khi nhắc đến thuật toán, ưu tiên giải thích theo từng bước thay vì chỉ liệt kê tên procedure.
+- Không claim các tính năng chưa có, đặc biệt không claim bonus logging nếu không triển khai ghi file.
+
+HÃY VIẾT REPORT HOÀN CHỈNH THEO CẤU TRÚC TRÊN.

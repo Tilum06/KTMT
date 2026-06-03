@@ -1,0 +1,64 @@
+\section{Thiết kế chương trình}
+
+\subsection{Cấu trúc tổng quát}
+
+Chương trình Battleship được chia thành ba giai đoạn chính:
+
+\begin{enumerate}
+    \item \textbf{Menu và chọn chế độ}: Hiển thị menu chính, cho phép người chơi chọn Play Game, View Instructions, hoặc Quit. Nếu chọn Play, người chơi chọn One Player (vs Computer) hoặc Two Players.
+    
+    \item \textbf{Setup Phase}: Mỗi người chơi (hoặc Computer tự động) đặt 6 tàu lên bàn cờ. Mỗi tàu phải đáp ứng các điều kiện hợp lệ. Nếu không hợp lệ, yêu cầu nhập lại.
+    
+    \item \textbf{Battle Phase}: Hai người chơi lần lượt tấn công. Mỗi lượt, người chơi nhập tọa độ, hệ thống kiểm tra trúng/trượt, cập nhật bàn cờ, rồi kiểm tra điều kiện thắng. Trò chơi kết thúc khi một bàn cờ không còn tàu.
+\end{enumerate}
+
+\subsection{Biểu diễn dữ liệu}
+
+Bàn cờ 7×7 được ánh xạ thành mảng 1D với 49 phần tử:
+
+$$\text{index} = \text{row} \times 7 + \text{col}$$
+
+Mỗi phần tử là một 32-bit word. Byte offset để truy cập:
+
+$$\text{byte\_offset} = \text{index} \times 4$$
+
+Ví dụ: Ô (3, 3) có index = 3×7+3 = 24, byte\_offset = 24×4 = 96.
+
+\subsection{Các mảng chính}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Mảng} & \textbf{Kích thước} & \textbf{Mục đích} \\
+\hline
+boardP1 & 49 words & Trạng thái tàu Player 1 (1=có, 0=không) \\
+\hline
+boardP2 & 49 words & Trạng thái tàu Player 2 (1=có, 0=không) \\
+\hline
+memP1 & 49 words & Lịch sử bắn Player 1 (0=chưa, 1=miss, 2=hit) \\
+\hline
+memP2 & 49 words & Lịch sử bắn Player 2 (0=chưa, 1=miss, 2=hit) \\
+\hline
+inputBuffer & 64 bytes & Lưu input từ người dùng \\
+\hline
+autoBoardTemplate & 49 words & Board mẫu của Computer (one player mode) \\
+\hline
+gameMode & 1 word & Loại chế độ chơi (1=One Player, 2=Two Players) \\
+\hline
+\end{tabular}
+\caption{Các mảng dữ liệu chính}
+\end{table}
+
+\subsection{MIPS Implementation Notes}
+
+Chương trình sử dụng các khái niệm MIPS sau:
+
+\begin{itemize}
+    \item \textbf{Arithmetic}: Tính index mảy từ tọa độ, tính độ dài tàu.
+    \item \textbf{Memory access}: `lw` đọc giá trị ô, `sw` ghi giá trị ô.
+    \item \textbf{Branches}: `beq`, `bne`, `blt` để kiểm tra điều kiện.
+    \item \textbf{Procedures}: `jal` gọi thủ tục, `jr \$ra` quay về, stack lưu `\$ra` khi thủ tục lồng nhau.
+    \item \textbf{Syscalls}: In/đọc chuỗi, in/đọc số, đọc ký tự.
+\end{itemize}

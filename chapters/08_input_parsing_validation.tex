@@ -1,0 +1,244 @@
+
+\section{Phân tích và xác thực Input}
+
+\subsection{Tổng quan về xử lý input}
+
+Chương trình cần xác thực input từ người dùng ở hai bối cảnh chính:
+\begin{enumerate}
+    \item \textbf{Giai đoạn Setup}: Đọc 4 tọa độ khi đặt tàu.
+    \item \textbf{Giai đoạn Battle}: Đọc 2 tọa độ khi tấn công.
+\end{enumerate}
+
+Xác thực input đảm bảo chương trình không bị lỗi khi người dùng nhập sai định dạng hoặc giá trị ngoài phạm vi.
+
+\subsection{Thủ tục parse\_four\_ints}
+
+Thủ tục này tách 4 số nguyên từ một chuỗi input. Nó được sử dụng khi đặt tàu.
+
+\subsection{Mục tiêu}
+
+Chuyển đổi một chuỗi nhập vào (ví dụ: ``0 0 0 1'') thành 4 giá trị số nguyên.
+
+\subsection{Thuật toán}
+
+\begin{verbatim}
+PROCEDURE parse_four_ints(input_string, addr_val1, addr_val2, 
+                          addr_val3, addr_val4)
+  parsed_count = 0
+  current_number = 0
+  current_char_index = 0
+  is_building_number = false
+  
+  WHILE current_char_index < length of input_string:
+    char = input_string[current_char_index]
+    
+    IF char is a digit (0-9):
+      // Add digit to current number
+      digit_value = char - '0'
+      current_number = current_number * 10 + digit_value
+      is_building_number = true
+    
+    ELSE IF char is whitespace (space, tab, newline):
+      IF is_building_number:
+        // Number is complete, store it
+        SWITCH parsed_count:
+          CASE 0: *addr_val1 = current_number
+          CASE 1: *addr_val2 = current_number
+          CASE 2: *addr_val3 = current_number
+          CASE 3: *addr_val4 = current_number
+        
+        parsed_count += 1
+        current_number = 0
+        is_building_number = false
+        
+        IF parsed_count == 4:
+          RETURN success
+    
+    ELSE:
+      // Invalid character (not digit, not whitespace)
+      // In some implementations, this could trigger an error
+      // For simplicity, we skip invalid characters
+      ;
+    
+    current_char_index += 1
+  
+  // Handle last number if exists
+  IF is_building_number AND parsed_count < 4:
+    SWITCH parsed_count:
+      CASE 0: *addr_val1 = current_number
+      CASE 1: *addr_val2 = current_number
+      CASE 2: *addr_val3 = current_number
+      CASE 3: *addr_val4 = current_number
+    parsed_count += 1
+  
+  IF parsed_count == 4:
+    RETURN success
+  ELSE:
+    RETURN failure
+
+END PROCEDURE
+\end{verbatim}
+
+\subsection{Chi tiết hoạt động}
+
+Thủ tục này hoạt động theo các bước sau:
+
+\begin{enumerate}
+    \item \textbf{Khởi tạo}: Đặt parsed\_count = 0, current\_number = 0, và chỉ số vị trí ký tự = 0.
+    
+    \item \textbf{Quét từng ký tự}: Lặp qua từng ký tự trong chuỗi input.
+    \begin{itemize}
+        \item Nếu ký tự là chữ số: Nhân current\_number với 10 và cộng giá trị chữ số mới (để xây dựng số multi-digit).
+        \item Nếu ký tự là khoảng trắng: Nếu đang xây dựng số, lưu số đó vào địa chỉ tương ứng, tăng parsed\_count, và đặt lại current\_number.
+        \item Nếu ký tự khác: Bỏ qua (hoặc có thể báo lỗi).
+    \end{itemize}
+    
+    \item \textbf{Xử lý số cuối cùng}: Sau vòng lặp, nếu vẫn đang xây dựng số, lưu nó.
+    
+    \item \textbf{Kiểm tra}: Nếu parsed\_count == 4, trả về thành công. Ngược lại, thất bại.
+\end{enumerate}
+
+\subsection{Ví dụ}
+
+Input: ``2 3 2 4''
+
+\begin{enumerate}
+    \item Quét '2': digit, current\_number = 2.
+    \item Quét ' ': whitespace, lưu 2 vào addr\_val1, parsed\_count = 1, current\_number = 0.
+    \item Quét '3': digit, current\_number = 3.
+    \item Quét ' ': whitespace, lưu 3 vào addr\_val2, parsed\_count = 2, current\_number = 0.
+    \item Quét '2': digit, current\_number = 2.
+    \item Quét ' ': whitespace, lưu 2 vào addr\_val3, parsed\_count = 3, current\_number = 0.
+    \item Quét '4': digit, current\_number = 4.
+    \item End of string: lưu 4 vào addr\_val4, parsed\_count = 4.
+    \item Trả về success.
+\end{enumerate}
+
+\subsection{Thủ tục parse\_two\_ints}
+
+Thủ tục này tương tự parse\_four\_ints nhưng chỉ tách 2 số nguyên. Được sử dụng khi tấn công.
+
+\begin{verbatim}
+PROCEDURE parse_two_ints(input_string, addr_val1, addr_val2)
+  // Tương tự parse_four_ints nhưng lặp đến khi parsed_count == 2
+  
+  parsed_count = 0
+  current_number = 0
+  current_char_index = 0
+  is_building_number = false
+  
+  WHILE current_char_index < length of input_string:
+    char = input_string[current_char_index]
+    
+    IF char is digit:
+      digit_value = char - '0'
+      current_number = current_number * 10 + digit_value
+      is_building_number = true
+    
+    ELSE IF char is whitespace:
+      IF is_building_number:
+        SWITCH parsed_count:
+          CASE 0: *addr_val1 = current_number
+          CASE 1: *addr_val2 = current_number
+        
+        parsed_count += 1
+        current_number = 0
+        is_building_number = false
+        
+        IF parsed_count == 2:
+          RETURN success
+    
+    current_char_index += 1
+  
+  IF is_building_number AND parsed_count < 2:
+    SWITCH parsed_count:
+      CASE 0: *addr_val1 = current_number
+      CASE 1: *addr_val2 = current_number
+    parsed_count += 1
+  
+  IF parsed_count == 2:
+    RETURN success
+  ELSE:
+    RETURN failure
+
+END PROCEDURE
+\end{verbatim}
+
+\subsection{Xác thực phạm vi (Range Validation)}
+
+Sau khi tách số nguyên từ chuỗi input, chương trình phải kiểm tra các giá trị có nằm trong phạm vi cho phép hay không.
+
+\subsection{Khi đặt tàu}
+
+\begin{verbatim}
+// Kiểm tra 4 tọa độ có nằm trong [0, 6]
+IF (r1 < 0 OR r1 > 6 OR c1 < 0 OR c1 > 6 OR
+    r2 < 0 OR r2 > 6 OR c2 < 0 OR c2 > 6):
+  PRINT "Error: Coordinates must be in range [0, 6]!"
+  RETURN failure
+\end{verbatim}
+
+\subsection{Khi tấn công}
+
+\begin{verbatim}
+// Kiểm tra 2 tọa độ có nằm trong [0, 6]
+IF (row < 0 OR row > 6 OR col < 0 OR col > 6):
+  PRINT "Error: Coordinates must be in range [0, 6]!"
+  RETURN failure
+\end{verbatim}
+
+\subsection{Xử lý input sai}
+
+Khi input không hợp lệ, chương trình:
+
+\begin{enumerate}
+    \item \textbf{Thông báo lỗi rõ ràng}: In thông báo lỗi cụ thể (ví dụ: ``Invalid format'', ``Out of range'', v.v.).
+    
+    \item \textbf{Yêu cầu nhập lại}: Quay lại bước đọc input, yêu cầu người dùng nhập lại.
+    
+    \item \textbf{Không cập nhật trạng thái}: Không thay đổi bất kỳ dữ liệu nào trên bàn cờ hoặc bản đồ bắn.
+\end{enumerate}
+
+\subsection{Vòng lặp input-validate-retry}
+
+\begin{verbatim}
+LOOP:
+  PRINT "Enter coordinates: "
+  READ input_line
+  
+  CALL parse_two_ints(input_line, addr_row, addr_col)
+  
+  IF parse failed:
+    PRINT "Invalid input format. Please try again."
+    CONTINUE LOOP
+  
+  IF row < 0 OR row > 6 OR col < 0 OR col > 6:
+    PRINT "Coordinates out of range [0, 6]. Please try again."
+    CONTINUE LOOP
+  
+  // Valid input, proceed
+  BREAK LOOP
+\end{verbatim}
+
+\subsection{Giới hạn hiện tại}
+
+Chương trình xác thực input có những giới hạn sau:
+
+\begin{itemize}
+    \item \textbf{Không xử lý số âm}: Input có số âm sẽ không được phân tích đúng. Ví dụ, ``-1 2'' sẽ không được tách thành -1 và 2.
+    \item \textbf{Không xử lý số quá lớn}: Nếu input chứa số lớn hơn 32-bit integer, hành vi không xác định.
+    \item \textbf{Không xử lý ký tự đặc biệt}: Input chứa ký tự đặc biệt (trừ khoảng trắng) sẽ bị bỏ qua hoặc gây lỗi.
+\end{itemize}
+
+Những giới hạn này là chấp nhận được vì input được giả định là từ người chơi hợp lý, không phải từ input tương tác phức tạp.
+
+\subsection{Best Practice}
+
+Khi viết code MIPS để xác thực input:
+
+\begin{enumerate}
+    \item \textbf{Tách biệt parse và validate}: Parse (tách số) riêng, validate (kiểm tra phạm vi) riêng.
+    \item \textbf{Cung cấp feedback rõ ràng}: Thông báo lỗi phải chỉ ra chính xác vấn đề gì.
+    \item \textbf{Lặp lại cho đến hợp lệ}: Không bỏ qua input sai; yêu cầu người dùng nhập lại.
+    \item \textbf{Kiểm thử kỹ lưỡng}: Test với input hợp lệ, không hợp lệ, và biên (boundary).
+\end{enumerate}

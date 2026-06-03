@@ -1,0 +1,182 @@
+
+\section{Chế độ một người và hành động máy tính}
+
+\subsection{Chế độ One Player vs Computer}
+
+Chế độ One Player cho phép một người chơi (Player 1) đấu với Computer (Player 2). Lợi thế của chế độ này là:
+\begin{itemize}
+    \item Người chơi không cần người bạn để chơi.
+    \item Computer tự động đặt tàu, không cần nhập liệu.
+    \item Computer tự động tấn công, giảm khối lượng tương tác.
+\end{itemize}
+
+\subsection{Thiết lập bàn cờ Computer}
+
+Trong chế độ One Player, Computer không cần trải qua giai đoạn setup tương tác. Thay vào đó, chương trình sao chép một mẫu bàn cờ được định nghĩa sẵn vào boardP2.
+
+\subsection{Mẫu bàn cờ tự động (autoBoardTemplate)}
+
+Mẫu autoBoardTemplate là một mảng 49 phần tử được xác định sẵn trong phần khai báo dữ liệu của chương trình. Mỗi phần tử có giá trị 0 hoặc 1, biểu diễn trạng thái ô trên bàn cờ Computer.
+
+Ví dụ, một mẫu có thể sắp xếp tàu như sau:
+\begin{verbatim}
+  0 1 2 3 4 5 6
+0 [1][1][0][0][0][0][0]  <- Ship 1 (length 2, horizontal)
+1 [0][0][0][0][0][0][0]
+2 [1][0][0][1][1][1][0]  <- Ship 3 (length 3, horizontal)
+3 [1][0][0][0][0][0][0]  <- Ship 2 (length 2, vertical)
+4 [1][0][1][0][0][0][0]  <- Ship 4 continues (length 2 vertical)
+5 [0][0][1][0][0][0][0]
+6 [0][0][1][1][1][1][0]  <- Ship 5 (length 4, horizontal)
+\end{verbatim}
+
+\subsection{Thủ tục nạp bàn cờ Computer}
+
+Khi chọn chế độ One Player, sau khi Player 1 hoàn thành setup, chương trình gọi load\_auto\_board():
+
+\begin{verbatim}
+PROCEDURE load_auto_board()
+  FOR i = 0 to 48:
+    byte_offset = i * 4
+    boardP2[byte_offset] = autoBoardTemplate[i]
+  
+  PRINT "Computer board loaded successfully."
+
+END PROCEDURE
+\end{verbatim}
+
+Thủ tục này sao chép toàn bộ 49 phần tử từ mẫu vào boardP2. Mẫu được thiết kế sao cho:
+\begin{enumerate}
+    \item Không có ô nào vượt ra ngoài biên.
+    \item Các tàu được đặt hợp lệ (ngang hoặc dọc).
+    \item Không có tàu nào chồng lấn.
+    \item Đúng số lượng ô tàu: 19 ô (3×2 + 2×3 + 1×4).
+\end{enumerate}
+
+\subsection{Chiến lược tấn công Computer}
+
+Chiến lược tấn công của Computer trong phiên bản này là chiến lược tuyến tính (linear scanning strategy). Đây là chiến lược đơn giản, dễ kiểm thử, nhưng không phải AI nâng cao.
+
+\subsection{Thủ tục computer\_attack}
+
+\begin{verbatim}
+PROCEDURE computer_attack(Computer, Player1, memP2, boardP1)
+  
+  // Tìm ô chưa bắn đầu tiên theo thứ tự
+  FOR index = 0 to 48:
+    byte_offset = index * 4
+    memory_value = memP2[byte_offset]
+    
+    IF memory_value == 0:  (ô chưa bắn)
+      
+      // Tính tọa độ để hiển thị
+      row = index / 7
+      col = index % 7
+      
+      PRINT "Computer attacks: (" + row + ", " + col + ")"
+      
+      // Kiểm tra trúng hay hụt
+      IF boardP1[byte_offset] == 1:
+        PRINT "HIT!"
+        boardP1[byte_offset] = 0
+        memP2[byte_offset] = 2
+      ELSE:
+        PRINT "MISS!"
+        memP2[byte_offset] = 1
+      
+      // Kiểm tra kết thúc game
+      CALL board_has_ship(boardP1)
+      IF no ship remains:
+        PRINT "Computer wins!"
+        RETURN game_over
+      
+      RETURN
+  
+  END FOR
+
+END PROCEDURE
+\end{verbatim}
+
+\subsection{Chi tiết hoạt động}
+
+Chiến lược này hoạt động như sau:
+
+\begin{enumerate}
+    \item \textbf{Quét từ index 0 đến 48}: Computer duyệt qua tất cả 49 ô trên bàn cờ theo thứ tự từ trên xuống dưới, từ trái sang phải.
+    
+    \item \textbf{Tìm ô chưa bắn}: Khi gặp ô đầu tiên có memP2[index] == 0 (chưa bắn), Computer chọn ô đó làm mục tiêu.
+    
+    \item \textbf{Tấn công}: Computer bắn vào ô được chọn.
+    \begin{itemize}
+        \item Nếu boardP1[index] == 1: Trúng! Cập nhật boardP1[index] = 0, memP2[index] = 2.
+        \item Nếu boardP1[index] == 0: Trượt! Cập nhật memP2[index] = 1.
+    \end{itemize}
+    
+    \item \textbf{Kiểm tra kết thúc}: Sau mỗi tấn công, kiểm tra xem Player 1 còn tàu hay không.
+    
+    \item \textbf{Trả về}: Thủ tục kết thúc, quay lại game loop, đến lượt Player 1 tấn công.
+\end{enumerate}
+
+\subsection{Ví dụ minh họa}
+
+Giả sử memP2 (lịch sử tấn công của Computer) hiện tại là:
+
+\begin{verbatim}
+Indices 0-6:   0, 0, 1, 0, 0, 0, 0
+Indices 7-13:  0, 1, 0, 0, 0, 0, 0
+Indices 14-20: 0, 0, 0, 0, 0, 0, 0
+...
+\end{verbatim}
+
+Computer sẽ:
+\begin{enumerate}
+    \item Quét từ index 0: memP2[0] == 0? Có. Chọn (0, 0).
+    \item Bắn vào (0, 0), giả sử boardP1[0] == 0 (trượt). Cập nhật memP2[0] = 1.
+    \item Kết thúc lượt, quay lại game loop.
+    \item Lần tiếp theo, Computer quét từ index 0 lại:
+    \begin{itemize}
+        \item memP2[0] == 1? Có, bỏ qua.
+        \item memP2[1] == 0? Có. Chọn (0, 1).
+    \end{itemize}
+    \item Tiếp tục cho đến khi tất cả ô được tấn công hoặc game kết thúc.
+\end{enumerate}
+
+\subsection{Giới hạn của chiến lược Computer}
+
+Chiến lược tuyến tính này có các giới hạn:
+
+\begin{itemize}
+    \item \textbf{Không thông minh}: Computer không học hỏi từ các lần trúng trước. Nếu bắn trúng ô (2, 3), nó vẫn không biết nên bắn vào ô lân cận để tìm tàu.
+    
+    \item \textbf{Không ngẫu nhiên}: Chiến lược là xác định (deterministic). Người chơi có thể dự đoán được ô Computer sẽ bắn tiếp theo.
+    
+    \item \textbf{Không tối ưu}: Có thể tốn nhiều lượt bắn hơn cần thiết để tiêu diệt tất cả tàu.
+\end{itemize}
+
+Những giới hạn này là chấp nhận được cho mục đích assignment này, vì mục tiêu là luyện tập lập trình MIPS, không phải phát triển AI chơi game.
+
+\subsection{So sánh hai chế độ chơi}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Khía cạnh} & \textbf{One Player} & \textbf{Two Players} \\
+\hline
+Setup Player 1 & Nhập liệu & Nhập liệu \\
+\hline
+Setup Player 2 & Tự động (autoBoardTemplate) & Nhập liệu \\
+\hline
+Attack Player 1 & Nhập liệu & Nhập liệu \\
+\hline
+Attack Player 2 & Tự động (computer\_attack) & Nhập liệu \\
+\hline
+Pause for swap & Không cần & Có \\
+\hline
+Độ phức tạp & Thấp & Cao \\
+\hline
+Thích hợp với AI & Có & Không \\
+\hline
+\end{tabular}
+\caption{So sánh hai chế độ chơi}
+\end{table}

@@ -1,0 +1,304 @@
+
+\section{Tổ chức thủ tục và khái niệm MIPS}
+
+\subsection{Kiến trúc chương trình theo thủ tục}
+
+Chương trình Battleship được tổ chức thành nhiều thủ tục nhỏ, mỗi thủ tục chịu trách nhiệm một chức năng cụ thể. Cách tổ chức này mang lại các lợi ích:
+
+\begin{itemize}
+    \item \textbf{Dễ đọc}: Mỗi thủ tục là một khối logic độc lập, dễ hiểu.
+    \item \textbf{Tái sử dụng}: Thủ tục có thể được gọi nhiều lần từ các vị trí khác nhau.
+    \item \textbf{Dễ bảo trì}: Khi cần sửa lỗi hoặc cải tiến, chỉ cần sửa thủ tục tương ứng.
+    \item \textbf{Modular}: Các thủ tục có thể phát triển độc lập.
+\end{itemize}
+
+\subsection{Gọi và trả về thủ tục (Procedure Call and Return)}
+
+Trong MIPS, việc gọi thủ tục sử dụng lệnh \texttt{jal} (jump-and-link) và trả về sử dụng \texttt{jr \$ra}.
+
+\subsection{Lệnh jal (jump-and-link)}
+
+Lệnh này có chức năng:
+\begin{enumerate}
+    \item Lưu địa chỉ lệnh kế tiếp (PC + 4) vào thanh ghi \$ra (return address register).
+    \item Nhảy tới địa chỉ của thủ tục.
+\end{enumerate}
+
+\begin{verbatim}
+jal procedure_name     # Gọi thủ tục
+\end{verbatim}
+
+Ví dụ:
+\begin{verbatim}
+jal print_board        # Gọi thủ tục print_board
+                       # \$ra sẽ chứa địa chỉ lệnh kế tiếp
+\end{verbatim}
+
+\subsection{Lệnh jr \$ra (jump register)}
+
+Lệnh này trả về từ thủ tục bằng cách nhảy tới địa chỉ lưu trong \$ra.
+
+\begin{verbatim}
+jr $ra                 # Trả về từ thủ tục
+\end{verbatim}
+
+\subsection{Ví dụ đơn giản}
+
+\begin{verbatim}
+main:
+  jal simple_proc      # Gọi simple_proc
+  # Trở lại đây sau khi simple_proc kết thúc
+  
+simple_proc:
+  # ... code ...
+  jr $ra               # Trả về
+\end{verbatim}
+
+\subsection{Bảo toàn thanh ghi (Register Preservation)}
+
+Khi một thủ tục gọi thủ tục khác, cần bảo toàn giá trị của các thanh ghi quan trọng.
+
+\subsection{Loại thanh ghi}
+
+MIPS có hai loại thanh ghi cần xem xét khi gọi thủ tục:
+
+\begin{enumerate}
+    \item \textbf{\$s-registers} (\$s0-\$s7): Thanh ghi lưu trữ tạm thời. Thủ tục được gọi có trách nhiệm bảo toàn những thanh ghi này trước khi sử dụng.
+    
+    \item \textbf{\$t-registers} (\$t0-\$t9): Thanh ghi tạm thời. Thủ tục gọi không thể giả định những thanh ghi này vẫn giữ giá trị cũ sau khi gọi thủ tục khác.
+    
+    \item \textbf{\$ra}: Thanh ghi return address. Nếu thủ tục gọi thủ tục khác (không chỉ gọi bổ sung), \$ra cần được bảo toàn.
+\end{enumerate}
+
+\subsection{Sử dụng Stack để bảo toàn thanh ghi}
+
+Khi thủ tục cần bảo toàn giá trị, nó sử dụng stack (vùng nhớ được quản lý bởi \$sp - stack pointer).
+
+\subsubsection{Đẩy thanh ghi vào stack (Prologue)}
+
+Tại đầu thủ tục, nếu thủ tục cần sử dụng \$s-registers hoặc gọi thủ tục khác:
+
+\begin{verbatim}
+procedure_name:
+  # Prologue: save registers
+  sw $ra, offset($sp)  # Lưu \$ra
+  sw $s0, offset($sp)  # Lưu \$s0 nếu cần
+  sw $s1, offset($sp)  # Lưu \$s1 nếu cần
+  addi $sp, $sp, -12   # Điều chỉnh stack pointer (lưu 3 từ = 12 byte)
+\end{verbatim}
+
+\subsubsection{Khôi phục thanh ghi từ stack (Epilogue)}
+
+Trước khi trả về, khôi phục các thanh ghi:
+
+\begin{verbatim}
+  # Epilogue: restore registers
+  addi $sp, $sp, 12    # Điều chỉnh stack pointer
+  lw $s1, offset($sp)  # Khôi phục \$s1
+  lw $s0, offset($sp)  # Khôi phục \$s0
+  lw $ra, offset($sp)  # Khôi phục \$ra
+  jr $ra               # Trả về
+\end{verbatim}
+
+\subsection{Ví dụ thủ tục lồng nhau}
+
+\begin{verbatim}
+outer_proc:
+  # Prologue
+  sw $ra, 0($sp)
+  addi $sp, $sp, -4
+  
+  # Code...
+  jal inner_proc       # Gọi inner_proc
+  # Trở lại
+  
+  # Epilogue
+  addi $sp, $sp, 4
+  lw $ra, 0($sp)
+  jr $ra
+
+inner_proc:
+  # inner_proc không cần lưu \$ra nếu không gọi thủ tục khác
+  # ... code ...
+  jr $ra
+\end{verbatim}
+
+\subsection{Các syscall được sử dụng}
+
+Chương trình sử dụng các dịch vụ hệ thống (syscalls) để tương tác với người dùng:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|l|}
+\hline
+\textbf{Code} & \textbf{Tên} & \textbf{Input} & \textbf{Mô tả} \\
+\hline
+1 & print\_int & \$a0 = giá trị & In một số nguyên \\
+\hline
+2 & print\_float & \$f12 = giá trị & In một số thực \\
+\hline
+4 & print\_string & \$a0 = địa chỉ & In một chuỗi \\
+\hline
+5 & read\_int &  & Đọc một số nguyên, trả về trong \$v0 \\
+\hline
+8 & read\_string & \$a0 = địa chỉ buffer, \$a1 = độ dài & Đọc một chuỗi \\
+\hline
+10 & exit &  & Kết thúc chương trình \\
+\hline
+12 & read\_char &  & Đọc một ký tự, trả về trong \$v0 \\
+\hline
+\end{tabular}
+\caption{Các syscalls phổ biến trong MARS}
+\end{table}
+
+\subsection{Ví dụ sử dụng syscalls}
+
+\subsubsection{In chuỗi}
+
+\begin{verbatim}
+la $a0, message      # Tải địa chỉ chuỗi
+li $v0, 4            # Code 4: print_string
+syscall
+\end{verbatim}
+
+\subsubsection{In số nguyên}
+
+\begin{verbatim}
+li $a0, 42           # Giá trị cần in
+li $v0, 1            # Code 1: print_int
+syscall
+\end{verbatim}
+
+\subsubsection{Đọc chuỗi}
+
+\begin{verbatim}
+la $a0, input_buffer # Địa chỉ buffer
+li $a1, 100          # Độ dài tối đa
+li $v0, 8            # Code 8: read_string
+syscall
+\end{verbatim}
+
+\subsection{Branching và Conditional Logic}
+
+Chương trình sử dụng các lệnh branch để kiểm tra điều kiện:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|c|}
+\hline
+\textbf{Lệnh} & \textbf{Ý nghĩa} & \textbf{Ví dụ} \\
+\hline
+beq & Branch if equal & beq \$t0, \$t1, label \\
+\hline
+bne & Branch if not equal & bne \$t0, \$t1, label \\
+\hline
+blt & Branch if less than & blt \$t0, \$t1, label \\
+\hline
+ble & Branch if less or equal & ble \$t0, \$t1, label \\
+\hline
+bgt & Branch if greater than & bgt \$t0, \$t1, label \\
+\hline
+bge & Branch if greater or equal & bge \$t0, \$t1, label \\
+\hline
+j & Jump & j label \\
+\hline
+\end{tabular}
+\caption{Các lệnh branch và jump}
+\end{table}
+
+\subsection{Ví dụ: Kiểm tra phạm vi}
+
+\begin{verbatim}
+# Kiểm tra nếu \$t0 < 0
+blt $t0, $zero, out_of_range
+
+# Kiểm tra nếu \$t0 > 6
+bgt $t0, 6, out_of_range
+
+# Hợp lệ
+# ... tiếp tục ...
+j continue
+
+out_of_range:
+  # Xử lý lỗi
+  la $a0, error_msg
+  li $v0, 4
+  syscall
+
+continue:
+\end{verbatim}
+
+\subsection{Arithmetic Instructions}
+
+Chương trình sử dụng các phép toán:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Lệnh} & \textbf{Mô tả} \\
+\hline
+add \$d, \$s, \$t & \$d = \$s + \$t \\
+\hline
+addi \$d, \$s, imm & \$d = \$s + immediate \\
+\hline
+sub \$d, \$s, \$t & \$d = \$s - \$t \\
+\hline
+mul \$d, \$s, \$t & \$d = \$s × \$t \\
+\hline
+div \$s, \$t & LO = \$s ÷ \$t, HI = \$s mod \$t \\
+\hline
+mflo \$d & \$d = LO (thương) \\
+\hline
+mfhi \$d & \$d = HI (phần dư) \\
+\hline
+\end{tabular}
+\caption{Các lệnh toán học}
+\end{table}
+
+\subsection{Ví dụ: Tính index = row × 7 + col}
+
+\begin{verbatim}
+# \$t0 = row, \$t1 = col
+mul $t2, $t0, 7      # \$t2 = row × 7
+add $t2, $t2, $t1    # \$t2 = row × 7 + col (index)
+
+# Tính byte offset = index × 4
+mul $t3, $t2, 4      # \$t3 = index × 4
+\end{verbatim}
+
+\subsection{Memory Instructions}
+
+Chương trình sử dụng các lệnh truy cập bộ nhớ:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Lệnh} & \textbf{Mô tả} \\
+\hline
+lw \$d, offset(\$s) & Load word: \$d = Memory[\$s + offset] \\
+\hline
+sw \$d, offset(\$s) & Store word: Memory[\$s + offset] = \$d \\
+\hline
+la \$d, label & Load address: \$d = địa chỉ của label \\
+\hline
+li \$d, imm & Load immediate: \$d = giá trị ngay lập tức \\
+\hline
+\end{tabular}
+\caption{Các lệnh truy cập bộ nhớ}
+\end{table}
+
+\subsection{Ví dụ: Đọc/ghi ô trên bàn cờ}
+
+\begin{verbatim}
+# Đọc ô tại index
+la $t0, boardP1      # Tải địa chỉ board
+mul $t1, $t2, 4      # $t1 = index × 4 (byte offset)
+add $t0, $t0, $t1    # $t0 = địa chỉ ô
+lw $t3, 0($t0)       # Đọc giá trị ô vào $t3
+
+# Ghi ô tại index
+li $t3, 1            # Giá trị cần ghi
+sw $t3, 0($t0)       # Ghi vào ô
+\end{verbatim}
